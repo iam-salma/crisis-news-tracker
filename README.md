@@ -5,24 +5,27 @@
 
 
 • Developed a full-stack platform that aggregates real-time global crisis news using web scraping and APIs
+
 • Integrated verified donation links for each crisis article to promote direct relief contributions
+
 • Designed an interactive world map using Leaflet.js with geo-tagged news popups
+
 • Implemented country-based filters and a newsletter subscription feature for user engagement
 
 
 ### 🔧 Setup Steps
 
-1. **Clone the repository**
+1. 📥 **Clone the repository**
     ```bash
-    git clone https://github.com/yourusername/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/iam-salma/CrisisAid-news-and-awareness-website.git
+    cd CrisisAid-news-and-awareness-website
     ```
 
-2. **Make sure you have Python 3 installed.**
+2. 🐍 **Make sure you have Python 3 installed.**
     Here’s the official link to install Python 3:
     🔗 https://www.python.org/downloads/
    
-3. **Create a virtual environment**
+3. 📦 **Create a virtual environment**
     ```bash
     python -m venv venv
     ```
