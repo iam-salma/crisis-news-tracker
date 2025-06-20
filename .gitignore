@@ -25,7 +25,6 @@ Thumbs.db
 
 # Environment variables and secrets
 .env
-.env.*
 
 # Test, coverage, and build artifacts
 .coverage
