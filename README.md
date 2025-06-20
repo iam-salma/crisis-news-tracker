@@ -22,15 +22,16 @@
     ```
 
 2. 🐍 **Make sure you have Python 3 installed.**
-    Here’s the official link to install Python 3:
+
+   Here’s the official link to install Python 3:
     🔗 https://www.python.org/downloads/
    
-3. 📦 **Create a virtual environment**
+4. 📦 **Create a virtual environment**
     ```bash
     python -m venv venv
     ```
    
-4. ⚙️ **Activate the virtual environment**
+5. ⚙️ **Activate the virtual environment**
     On Windows
       ```bash
       .\venv\Scripts\activate
@@ -40,20 +41,20 @@
       source venv/bin/activate
       ```
 
-5. 📌 **Install dependencies** :
+6. 📌 **Install dependencies** :
     ```bash
     pip install -r requirements.txt
     ```
 
-6. 🗝️ **Create .env folder to store secrets** :
+7. 🗝️ **Create .env folder to store secrets** :
 
      refer the .env.example for reference
 
-7. **📂 Create an instance/ folder** :
+8. **📂 Create an instance/ folder** :
 
      create a **news.db** file in the folder
   
-8. **To Run the Project**:
+9. **To Run the Project**:
    ```bash
    python main.py
    ```
