@@ -32,7 +32,8 @@ Join us in turning awareness into action ⚡.
 🧠 Designed with scalability and impact in mind
 
 
-### 🔧 Setup Steps
+
+## 🔧 Setup Steps
 
 1. 📥 **Clone the repository** :
     ```bash
