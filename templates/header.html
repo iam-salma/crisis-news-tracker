@@ -1,0 +1,60 @@
+<!-- Navbar -->
+<div class="container mb-3 border-bottom">
+    <header class="d-flex flex-wrap justify-content-between py-2 border-bottom">
+        <!-- Logo and Brand Name -->
+        <a href="{{ url_for('home') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <img src="/static/assets/images/logo.png" width="40" height="40" alt="Logo" />
+            <span class="fs-4 ml-3" data-bs-theme="dark">CrisisAid</span>
+        </a>
+
+        <!-- Navbar Items -->
+        <nav class="navbar navbar-light">
+            <!-- Toggler Button (Visible only on smaller screens) -->
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation Menu and Search Bar (Visible on larger screens) -->
+            <div class="d-none d-lg-flex align-items-center">
+                <ul class="nav nav-pills me-3">
+                    {% for page, path in [('home', '/'), ('chat', '/chat'), ('locate', '/locate'), ('about', '/about')] %}
+                    <li class="nav-item">
+                        <a href="{{ url_for(page) }}" class="nav-link {% if request.url.path == path %}active{% endif %}" aria-current="page">{{ page.capitalize() }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <form class="d-flex mx-2" role="search" action="/search" method="get">
+                    <input class="form-control me-2" aria-label="Search" type="search" name="country" placeholder="Search for a country..." required>
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                </div>
+            </div>
+        </nav>
+    </header>
+</div>
+
+<!-- Offcanvas Menu (Visible on smaller screens) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Explore</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Navigation Items -->
+        <ul class="nav nav-pills flex-column mb-3">
+            {% for page, path in [('home', '/'), ('chat', '/chat'), ('locate', '/locate'), ('about', '/about')] %}
+            <li class="nav-item">
+                <a href="{{ request.url_for(page) }}" class="nav-link {% if request.url.path == path %}active{% endif %}" aria-current="page">{{ page.capitalize() }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Search Form -->
+        <form class="d-flex" role="search" action="/search" method="get">
+            <input class="form-control me-2" aria-label="Search" type="search" name="country" placeholder="Search for a country..." required>
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+    </div>
+</div>

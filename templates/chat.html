@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-4">
+    <div class="chat-container card shadow p-3">
+        <h2 class="text-center mb-3">Chat With Us!</h2>
+        <div class="chat-box border rounded p-3 mb-3" id="chat-box" style="height: 60vh; overflow-y: auto;">
+            <!-- Chat messages will appear here -->
+        </div>
+
+        <div class="input-group px-5">
+            <input type="text" id="user_input" class="form-control" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button class="btn btn-primary" id="send_button" style="width: 10vw;" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+<script>
+    // Define the function to handle the "Enter" key press
+    function handleKeyPress(event) {
+        if (event.key === "Enter") sendMessage();
+    }
+
+    // Function to send the message
+    async function sendMessage() {
+        let userInput = document.getElementById("user_input").value.trim();
+        if (!userInput) return;
+
+        let chatBox = document.getElementById("chat-box");
+
+        // Display the user's message in the chat box
+        chatBox.innerHTML += `<div class="user-message"><strong>You:</strong> ${userInput}</div>`;
+        document.getElementById("user_input").value = "";
+
+        console.log("Sending message:", userInput);
+
+        try {
+            // Send message to FastAPI backend
+            let response = await fetch("http://127.0.0.1:8000/generate/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            });
+
+            console.log("Response status:", response.status);
+
+            // Handle response
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            let data = await response.json();
+            console.log("Response data:", data);
+
+            let botReply = data.response || "No response from bot.";
+            chatBox.innerHTML += `<div class="bot-message"><strong>Bot:</strong> ${botReply}</div>`;
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        } catch (error) {
+            console.error("Error:", error);
+            chatBox.innerHTML += `<div style="color: indianred;"><strong>Error:</strong> Failed to get response.</div>`;
+        }
+    }
+
+    // Attach the onkeypress event to the input element after the page is loaded
+    window.onload = function() {
+        document.getElementById("user_input").addEventListener("keypress", handleKeyPress);
+        document.getElementById("send_button").addEventListener("click", sendMessage); // Add event listener for the button
+    };
+</script>
+
+
+{% endblock %}

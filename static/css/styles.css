@@ -1,0 +1,138 @@
+/* Default toggle color */
+.form-check-input {
+    background-color: white !important;
+    border-color: indianred !important;
+}
+
+/* Toggle color when checked (dark mode on) */
+.form-check-input:checked {
+    background-color: indianred !important;
+    border-color: indianred !important;
+}
+
+/* Focus effect */
+.form-check-input:focus {
+    box-shadow: 0 0 5px indianred !important;
+}
+
+[data-bs-theme=dark] .carousel .carousel-caption, [data-bs-theme=dark] .fs-4{
+    color: white;
+}
+
+
+.nav {
+    --bs-nav-link-font-weight: 400;
+    --bs-nav-link-color: indianred;
+    --bs-nav-link-hover-color: #FF8A8A;
+}
+
+.bg-light {
+    --bs-bg-opacity: 1;
+    background-color: white !important;
+}
+
+.fs-4 {
+    font-size: calc(1.5rem + .3vw) !important;
+    font-family: sans-serif;
+    font-weight: 500;
+    color: #333;
+    margin-left: 1rem;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: indianred;
+}
+
+.btn-outline-success {
+    --bs-btn-color: indianred;
+    --bs-btn-border-color: indianred;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: indianred;
+    --bs-btn-hover-border-color: indianred;
+    --bs-btn-focus-shadow-rgb: 25, 135, 84;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: indianred;
+    --bs-btn-active-border-color: indianred;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: indianred;
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: indianred;
+    --bs-gradient: none;
+}
+
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: indianred;
+    --bs-btn-border-color: indianred;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #E57373;
+    --bs-btn-hover-border-color: #E57373;
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: indianred;
+    --bs-btn-active-border-color: indianred;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: indianred;
+    --bs-btn-disabled-border-color: indianred;
+}
+
+.bg-body-tertiary {
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-tertiary-bg-rgb), var(--bs-bg-opacity)) !important;
+}
+
+.carousel-item {
+    background-size:cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 70vh;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.badge {
+    background-color: indianred !important;
+}
+
+.popup-content img {
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.user-message {
+    background-color: indianRed;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    width: inline-block;
+    max-width: 70%;
+    margin-left: auto; /* Align to the right */
+    text-align: left;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+/* Bot message styling */
+.bot-message {
+    /* background-color: #e1e1e1; */
+    color: black;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    max-width: 70%;
+    margin-right: auto; /* Align to the left */
+    font-size: 1rem;
+    word-break: break-word;
+}

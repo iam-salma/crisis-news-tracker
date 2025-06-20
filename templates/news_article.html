@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container col-xxl-9 px-3">
+    <div class="row flex-lg-row-reverse align-items-center g-5">
+      <div class="col-10 col-sm-8 col-lg-6">
+        <img src="{{ article.urlToImage }}" class="d-block mx-lg-auto img-fluid" width="700" height="500" loading="lazy">
+      </div>
+      <div class="col-lg-6">
+        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ article.title }}</h1>
+        <h3>{{ article.description }}</h3>
+      </div>
+    </div>
+  </div>
+
+<div class="container col-xxl-9 px-3 py-5">
+    <div class="row flex-lg-row-reverse align-items-center g-5">
+      <div class="col-lg-12">
+          <ul class="list-group pb-2" style="border: none;">
+              {% for point in article.content.split("\n") if point.strip() %}
+                <li class="lead list-group-item list-group-item-action" style="border: none;">{{ point.strip() }}</li>
+              {% endfor %}
+          </ul>
+          <a class="lead" href="{{ article.url }}" target="_blank" style="text-decoration: None;color: indianred;">read more..</a>
+<!--        <p class="lead">{{ article.content }} <a href="{{ article.url }}" target="_blank" style="text-decoration: None;color: indianred;">read more..</a></p>-->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start pt-2">
+          <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">
+              {% if country == "None" %}
+              <a class="nav-link" target="_blank" href="{{ article.link }}">Donate Now!</a>
+              {% else %}
+              <a class="nav-link" target="_blank" href="{{ article.link }}">Donate to {{ country }}!</a>
+              {% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>
+
+{% endblock %}

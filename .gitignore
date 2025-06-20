@@ -1,0 +1,60 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# VSCode settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# macOS and Windows system files
+.DS_Store
+Thumbs.db
+
+# Logs and local databases
+*.log
+*.sqlite3
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Test, coverage, and build artifacts
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Compiled C extensions
+*.so
+
+# mypy, Pyright, or other tool caches
+.mypy_cache/
+.pyright/
+
+# FastAPI auto-generated docs cache (optional)
+.openapi.json
+
+# pytest cache
+.pytest_cache/
+
+
+# test files
+test.py
+test2.py
+
+# instance folder
+instance/
+news.db

@@ -1,0 +1,57 @@
+<!-- FOOTER -->
+<div class="container border-top">
+  <footer class="py-5">
+    <div class="row">
+      <!-- Explore Section -->
+      <div class="col-6 mb-3">
+        <h5>Explore</h5><br>
+        <ul class="nav nav-pills me-3">
+          <li class="nav-item">
+            <a href="{{ url_for('home') }}" class="nav-link {% if request.url.path == '/' %}active{% endif %}" aria-current="page">Home</a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('locate') }}" class="nav-link {% if request.url.path == '/locate' %}active{% endif %}">Locate</a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('about') }}" class="nav-link {% if request.url.path == '/about' %}active{% endif %}">About</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Newsletter Subscription Section -->
+      <div id="target-section" class="col-md-5 offset-md-1 mb-3">
+        <form action="/getmail" method="get">
+          <h5>Subscribe To Our Newsletter</h5>
+          <p>Get the latest updates on global crises and relief efforts directly in your inbox.</p>
+          <div class="d-flex flex-column flex-sm-row w-100 gap-2">
+            <label for="newsletter1" class="visually-hidden">Email address</label>
+            <input id="newsletter1" type="email" class="form-control" name="email" placeholder="Email address" required>
+            <button class="btn btn-primary" type="submit">Subscribe</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer Bottom Section -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top">
+      <p>© {{ year }} Company, Inc. All rights reserved.</p>
+      <ul class="list-unstyled d-flex">
+        <li class="ms-3">
+          <a class="link-body-emphasis" href="#">
+            <img width="24" height="24" src="/static/assets/images/twitter.png" alt="Twitter">
+          </a>
+        </li>
+        <li class="ms-3">
+          <a class="link-body-emphasis" href="#">
+            <img width="24" height="24" src="/static/assets/images/insta.png" alt="Instagram">
+          </a>
+        </li>
+        <li class="ms-3">
+          <a class="link-body-emphasis" href="#">
+            <img width="24" height="24" src="/static/assets/images/facebook.png" alt="Facebook">
+          </a>
+        </li>
+      </ul>
+    </div>
+  </footer>
+</div>

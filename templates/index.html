@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Carousel -->
+<div class="container mb-3">
+  <div id="responsiveCarousel" class="carousel slide" data-bs-ride="carousel">
+    <!-- Indicators -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+
+    <!-- Carousel Items -->
+    <div class="carousel-inner">
+      <div class="carousel-item active" style="background-image: url('../static/assets/images/hero-active.jpg')">
+        <div class="carousel-caption text-start">
+          <h1>Stay Updated on Global Crises</h1>
+          <p class="lead">Get the latest news on humanitarian crises, natural disasters, and conflicts from around the world. Stay informed and make a difference.</p>
+          <button class="btn btn-lg btn-primary" type="button" onclick="window.location.href='#target-section';">Subscribe To Our Newsletter!</button>
+        </div>
+      </div>
+      <div class="carousel-item" style="background-image: url('../static/assets/images/hero2.jpg');">
+        <div class="carousel-caption text-start">
+          <h1>Help When It Matters Most</h1>
+          <p class="lead">Learn how you can contribute to relief efforts through trusted organizations. Every small step can create big changes.</p>
+          <p><a class="btn btn-lg btn-primary" href="https://www.redcross.org/donate/donation.html/" target="_blank">Donate</a></p>
+        </div>
+      </div>
+      <div class="carousel-item" style="background-image: url('../static/assets/images/hero3.jpg');">
+        <div class="carousel-caption text-start">
+          <h1>Spotlight: Gaza</h1>
+          <p class="lead">Explore in-depth coverage of ongoing challenges in Gaza. Understand the causes and what’s being done to help.</p>
+          <p><a class="btn btn-lg btn-primary" href="https://donate.unrwa.org/int/en/general" target="_blank">Donate To Gaza</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#responsiveCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#responsiveCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+
+<!-- Articles -->
+<div class="album my-3 bg-body-tertiary">
+  <div class="container">
+    <h3 class="border-bottom border-top py-3">
+      Latest News
+      <span class="badge" style="animation: blink 3s ease-in-out infinite;">New</span>
+    </h3>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 pt-2">
+      {% for article in all_articles %}
+      <div class="col">
+        <div class="card shadow-sm" style="height: 410px;">
+          <img src="{{ article.urlToImage }}" class="card-img-top" alt="Article Image" style="height: 225px; object-fit: cover;">
+          <div class="card-body">
+            <h5 class="card-title" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+              <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=None) }}">{{ article.title }}</a>
+            </h5>
+            <p class="card-text" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+              {{ article.description }}
+            </p>
+            <div class="d-flex justify-content-between align-items-center">
+              <button type="button" class="btn btn-sm btn-outline-secondary">
+                <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=None) }}">Read More</a>
+              </button>
+              <small class="text-body-secondary">{{ article.publishedAt }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
