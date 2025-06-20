@@ -1,15 +1,23 @@
-# CrisisAid - News and Awareness Website
+# 🌍 CrisisAid — Real-Time News & Awareness Hub
 
-CrisisAid is a real-time crisis awareness platform built to inform, support, and mobilize action during humanitarian emergencies across the globe.
+CrisisAid is more than just a news site — it's your real-time window into global emergencies, designed to inform, support, and spark action when it matters most.
 
-This full-stack web application aggregates live crisis news using web scraping and public APIs, and visualizes them on an interactive world map using Leaflet.js. Each crisis is geo-tagged, filtered by country, and linked with verified donation sources to encourage timely aid.
+Built with a powerful full-stack setup, CrisisAid pulls in live crisis updates from around the world using smart web scraping and trusted public APIs. These updates are then brought to life on an interactive world map 🌐 with geo-tagged markers, country filters, and verified donation links 💸 — so you're never just a bystander.
 
-In addition to providing situational updates, the platform features a newsletter subscription, country-based filters, and an intuitive UI for engagement. The backend, powered by FastAPI and Flask, supports scalable API endpoints and handles real-time data updates.
+Whether you're tracking events, sharing updates, or looking to help, CrisisAid gives you:
 
-### Tech stack:
-  Flask, FastAPI, Uvicorn, SQLite, HTML, CSS, JavaScript, Leaflet.js
+🗺️ A global crisis map (thanks to Leaflet.js)
 
-###💡 **Key Features**:
+📬 A newsletter to stay in the loop
+
+🧠 A clean and responsive UI that actually feels good to use
+
+On the backend, it's powered by FastAPI + Flask for lightning-fast data delivery, and built to scale — just like the impact we’re aiming for.
+
+Join us in turning awareness into action ⚡.
+
+
+### 💡 Key Features:
 
 🔄 Real-time crisis news aggregation
 
