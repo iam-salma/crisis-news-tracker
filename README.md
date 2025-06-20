@@ -41,19 +41,21 @@
       ```
 
 5. 📌 **Install dependencies** :
-  ```bash
-  pip install -r requirements.txt
-  ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 6. 🗝️ **Create .env folder to store secrets** :
-    refer the .env.example for reference
+
+     refer the .env.example for reference
 
 7. **📂 Create an instance/ folder** :
-    create a **news.db** file in the folder
+
+     create a **news.db** file in the folder
   
 8. **To Run the Project**:
-  ```bash
-  python main.py
-  ```
+   ```bash
+   python main.py
+   ```
 
 ENJOY 😊🎉
