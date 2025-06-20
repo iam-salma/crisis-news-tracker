@@ -15,46 +15,47 @@
 
 ### 🔧 Setup Steps
 
-1. 📥 **Clone the repository**
+1. 📥 **Clone the repository** :
     ```bash
     git clone https://github.com/iam-salma/CrisisAid-news-and-awareness-website.git
     cd CrisisAid-news-and-awareness-website
     ```
 
-2. 🐍 **Make sure you have Python 3 installed.**
+2. 🐍 **Make sure you have Python 3 installed.** :
 
    Here’s the official link to install Python 3:
     🔗 https://www.python.org/downloads/
    
-4. 📦 **Create a virtual environment**
+4. 📦 **Create a virtual environment** :
     ```bash
     python -m venv venv
     ```
    
 5. ⚙️ **Activate the virtual environment**
-    On Windows
+
+   On Windows :
       ```bash
       .\venv\Scripts\activate
       ```
-    On macOS/Linux
+    On macOS/Linux :
       ```bash
       source venv/bin/activate
       ```
 
-6. 📌 **Install dependencies** :
+7. 📌 **Install dependencies** :
     ```bash
     pip install -r requirements.txt
     ```
 
-7. 🗝️ **Create .env folder to store secrets** :
+8. 🗝️ **Create .env folder to store secrets** :
 
      refer the .env.example for reference
 
-8. **📂 Create an instance/ folder** :
+9. **📂 Create an instance/ folder** :
 
      create a **news.db** file in the folder
   
-9. **To Run the Project**:
+10. **To Run the Project**:
    ```bash
    python main.py
    ```
