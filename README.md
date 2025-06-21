@@ -73,7 +73,7 @@ Join us in turning awareness into action ⚡.
 
 9. **📂 Create an instance/ folder** :
 
-       create a "**news.db**" file inside the folder
+       create a **news.db** file inside the folder
   
 10. 🏃**To Run the Project**:
      ```bash
