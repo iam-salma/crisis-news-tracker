@@ -33,7 +33,7 @@ Join us in turning awareness into action ⚡.
 
 
 
-## 🔧 Setup Steps
+## 🔧 Setup Steps :
 
 1. 📥 **Clone the repository** :
     ```bash
@@ -69,15 +69,15 @@ Join us in turning awareness into action ⚡.
 
 8. 🗝️ **Create .env folder to store secrets** :
 
-     refer the .env.example for reference
+       refer the .env.example for reference
 
 9. **📂 Create an instance/ folder** :
 
-     create a **news.db** file in the folder
+       create a "**news.db**" file inside the folder
   
-10. **To Run the Project**:
-   ```bash
-   python main.py
-   ```
+10. 🏃**To Run the Project**:
+     ```bash
+     python main.py
+     ```
 
 ENJOY 😊🎉
