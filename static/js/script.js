@@ -124,7 +124,7 @@ fetch('/get_crisis_countries')
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
-                  <h5 class="display-6 fw-bold text-body-emphasis mb-3"><b>${location.name}</b></h5>
+                  <h5 class="display-6 fw-bold  mb-3 popup-heading"><b>${location.name}</b></h5>
                   <img src="${location.img}" alt="Crisis Image" class="img-fluid mb-2" style="width: 100%; max-height: 200px; object-fit: cover;" />
                   <p class="lead">${location.news}</p>
                   <a href="https://www.redcross.org/donate/donation.html/" class="btn btn-primary btn-lg px-4 me-md-2" style="color: white" target="_blank">Donate</a>

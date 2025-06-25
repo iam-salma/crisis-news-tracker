@@ -2,6 +2,7 @@ import os
 import re
 import time
 import ssl
+import json
 import logging
 import smtplib
 import schedule
@@ -49,7 +50,7 @@ def fetch_news_from_api(country=None):
                 "humanitarian+crisis -political+crisis -financial+crisis -human+rights -president -movie -TV -twitter",
         "searchln": "title,description,content",
         "excludeDomains": "lifesciencesworld.com,psychologytoday.com,smallwarsjournal.com,leicarumors.com,"
-                        "abcnews.go.com,sf.funcheap.com,fark.com",
+                        "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com",
         "language": "en",
     }
     response = requests.get(os.environ["NEWS_API_URL"], params=params)
@@ -266,21 +267,26 @@ async def locate(request: Request):
 @app.get("/get_crisis_countries")
 async def get_crisis_countries():
     articles = fetch_news_from_api()
-    countries = requests.get(os.environ["REST_COUNTRIES_API_URL"]).json()
+    resp = requests.get(os.environ["REST_COUNTRIES_API_URL"])
+    if resp.ok:
+        countries = json.loads(resp.text)
+    else:
+        raise Exception("Failed to fetch country data")
     country_data = {country["name"]["common"]: country.get("latlng", [None, None]) for country in countries}
 
     crisis_countries = []
     for article in articles:
-        if "aid" not in article["title"] and "for" not in article["title"] and "to" not in article["title"]:
+        # if "aid" not in article["title"] and "for" not in article["title"] and "to" not in article["title"]:
+        if all(x not in article["title"] for x in ["aid", "for", "to"]):
             for country in list(country_data.keys()):
                 if country.lower() in article["title"].lower() or country.lower() in article["description"].lower():
                     lat, lng = country_data[country]
                     img = article["urlToImage"]
                     crisis_countries.append(
                         {"name": country, "news": article["title"], "img": img, "lat": lat, "lng": lng})
-                    country_data.pop(country)
+                    country_data.pop(country, None)
 
-    # pprint(crisis_countries)
+    pprint(crisis_countries)
     return {"crisis_countries": crisis_countries}
 
 
@@ -318,6 +324,13 @@ async def startup_event():
     #     schedule.run_pending()
     #     time.sleep(60)
 
+import os
+import uvicorn
+
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ["PORT"]), reload=True)
+    port = int(os.environ.get("PORT", 8000))  # fallback for local testing
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
+
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ["PORT"]), reload=True)
