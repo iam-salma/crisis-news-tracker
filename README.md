@@ -77,5 +77,8 @@ Join us in turning awareness into action ⚡.
      ```bash
      python main.py
      ```
+## 🌐 Live Demo
+
+👉 [Click here to view the deployed website](https://crisisaid-news-and-awareness.onrender.com)
 
 ENJOY 😊🎉
