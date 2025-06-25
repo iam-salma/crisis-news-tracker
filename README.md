@@ -2,7 +2,7 @@
 
 CrisisAid is more than just a news site — it's your real-time window into global emergencies, designed to inform, support, and spark action when it matters most.
 
-Built with a powerful full-stack setup, CrisisAid pulls in live crisis updates from around the world using smart web scraping and trusted public APIs. These updates are then brought to life on an interactive world map 🌐 with geo-tagged markers, country filters, and verified donation links 💸 — so you're never just a bystander.
+Built with a powerful full-stack setup, CrisisAid pulls in live crisis updates from around the world using trusted public APIs. These updates are then brought to life on an interactive world map 🌐 with geo-tagged markers, country filters, and verified donation links 💸 — so you're never just a bystander.
 
 Whether you're tracking events, sharing updates, or looking to help, CrisisAid gives you:
 
