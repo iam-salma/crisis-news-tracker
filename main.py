@@ -320,4 +320,4 @@ async def startup_event():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="00.0.0, port=os.environ["PORT"])
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ["PORT"]), reload=True)
