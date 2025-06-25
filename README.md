@@ -45,8 +45,8 @@
 6. 🗝️ **Create .env folder to store secrets** :
     refer the .env.example for reference
 
-7. **📂 Create an instance/ folder** :
-    create a **news.db** file in the folder
+7. **📂 Delete the instance/ folder** :
+    create it again and add **news.db** file in the folder
   
 8. **To Run the Project**:
   ```bash

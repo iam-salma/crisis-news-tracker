@@ -1,0 +1,221 @@
+from fastapi import FastAPI, Request, Depends, Query, HTTPException, BackgroundTasks
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import func, desc, ColumnElement
+from sqlalchemy.orm import Session
+from schemas import NewsArticle as PydanticNewsArticle, CountryNewsArticle as PydanticCountryNewsArticle
+from models import SessionLocal, NewsArticle, CountryNewsArticle, AddEmail
+from datetime import datetime
+# from pprint import pprint
+from dotenv import load_dotenv
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from contextlib import asynccontextmanager
+import requests
+import schedule
+import os
+
+load_dotenv()
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def fetch_news_from_api(country=None):
+    params = {
+        "apiKey": os.environ["NEWS_API_KEY"],
+        "q": f"{country} AND (humanitarian+crisis -political+crisis -financial+crisis)" if country else
+             "humanitarian+crisis -political+crisis -financial+crisis",
+        "searchln": "title,description,content",
+        "language": "en",
+    }
+    response = requests.get(os.environ["NEWS_API_URL"], params=params)
+    response.raise_for_status()
+    articles = response.json().get("articles", [])
+    articles_with_images = [article for article in articles if article.get("urlToImage")]
+
+    return articles_with_images
+
+
+async def insert_news_in_db(country=None):
+    articles = fetch_news_from_api(country)
+    try:
+        # db = next(get_db())
+        with SessionLocal() as db:
+            rows_deleted = db.query(CountryNewsArticle).delete()
+            db.commit()
+            # print(f"Deleted {rows_deleted} rows from CountryNewsArticle.")
+
+        db_articles = []
+        for article in articles:
+            db_article = (CountryNewsArticle if country else NewsArticle)(
+                title=article.get("title"),
+                description=article.get("description"),
+                content=await generate_content((article.get("content")).replace("<ul><li>", "").split('[')[0]),
+                # content=(article.get("content")).replace("<ul><li>", "").split('[')[0],
+                url=article.get("url"),
+                urlToImage=article.get("urlToImage"),
+                publishedAt=datetime.fromisoformat(article.get("publishedAt")[:-1]).strftime('%d-%m-%Y')
+            )
+            db.add(db_article)
+            db_articles.append(db_article)
+
+        db.commit()
+        print(f"Inserted {len(db_articles)} articles into the database.")
+    except Exception as e:
+        print(f"Error filling database with news: {e}")
+
+async def generate_content(prompt):
+    response = requests.post(os.environ["DEEP_AI_URL"], data={"text": f"give me 1000 word content for {prompt}"},
+                             headers={"api-key": os.environ["DEEP_AI_API_KEY"]})
+    return response.json().get("output", "Failed to generate content")
+
+
+def get_hero_image(country):
+    params = {
+        "q": f"humanitarian+crisis+in+{country}",
+        "cx": os.environ["SEARCH_ENGINE_ID"],
+        "key": os.environ["CUSTOM_SEARCH_API_KEY"],
+        "searchType": "image",
+        "num": 1
+    }
+    response = requests.get(os.environ["CUSTOM_SEARCH_URL"], params=params)
+    response.raise_for_status()
+    data = response.json()
+    hero_image_url = data["items"][0]["link"]
+
+    return hero_image_url
+
+
+def send_newsletter():
+    db = next(get_db())
+    article = db.query(NewsArticle).first()
+    emails = db.query(AddEmail.email).all()
+    email_list = [email[0] for email in emails]
+    for recipient_email in email_list:
+        msg = MIMEMultipart()
+        msg['From'] = os.environ["EMAIL"]
+        msg['To'] = recipient_email
+        msg['Subject'] = f"CrisisAid: Latest News: {article.title}"
+        body = f"""<html>
+                    <body>
+                        <h5><b>{article.title}</b></h5>
+                        <img src="{article.urlToImage}" alt="Crisis Image" style="width: 25%; object-fit: cover;"/>
+                        <p>{article.description}</p>
+                        <p><strong>Published on:</strong> {article.publishedAt}</p>
+                    </body>
+                </html>"""
+
+        msg.attach(MIMEText(body, 'html'))
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=ssl.create_default_context()) as server:
+                server.login(os.environ["EMAIL"], os.environ["PASSWORD"])
+                server.sendmail(os.environ["EMAIL"], recipient_email, msg.as_string())
+            print(f"Email sent to {recipient_email}")
+        except Exception as e:
+            print(f"Error sending email to {recipient_email}: {e}")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request, db: Session = Depends(get_db)):
+    await insert_news_in_db()
+    articles = db.query(NewsArticle).offset(0).limit(21).all()
+    py_articles = [PydanticNewsArticle.model_validate(article) for article in articles]
+    return templates.TemplateResponse("index.html", {"request": request, "all_articles": py_articles})
+
+@app.get("/search", response_class=HTMLResponse)
+async def search_news(request: Request, db: Session = Depends(get_db), country: str = Query(...)):
+    await insert_news_in_db(country)
+    hero_image = get_hero_image(country)
+    articles = db.query(CountryNewsArticle).filter(
+        func.lower(CountryNewsArticle.title).contains(func.lower(country))
+    ).offset(0).all()
+    py_articles = [PydanticCountryNewsArticle.model_validate(article) for article in articles]
+    return templates.TemplateResponse("search.html", {
+        "request": request,
+        "country": country,
+        "hero_image": hero_image,
+        "all_articles": py_articles
+    })
+
+
+@app.get("/news_article/{news_id}/{is_country}", response_class=HTMLResponse)
+async def news_detail(request: Request, news_id: int, is_country: bool, db: Session = Depends(get_db)):
+    if is_country:
+        article = db.query(CountryNewsArticle).filter(CountryNewsArticle.id == news_id).first()
+    else:
+        article = db.query(NewsArticle).filter(NewsArticle.id == news_id).first()
+
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return templates.TemplateResponse("news_article.html", {"request": request, "article": article})
+
+
+@app.get("/locate", response_class=HTMLResponse)
+async def locate(request: Request):
+    return templates.TemplateResponse("locate.html", {"request": request})
+
+
+@app.get("/get_crisis_countries")
+def get_crisis_countries():
+    articles = fetch_news_from_api()
+    countries = requests.get(os.environ["REST_COUNTRIES_API_URL"]).json()
+    country_data = {country["name"]["common"]: country.get("latlng", [None, None]) for country in countries}
+
+    crisis_countries = []
+    for article in articles:
+        for country in list(country_data.keys()):
+            if country.lower() in article["title"].lower() or country.lower() in article["description"].lower():
+                lat, lng = country_data[country]
+                img = article["urlToImage"]
+                crisis_countries.append({"name": country, "news": article["title"], "img": img, "lat": lat, "lng": lng})
+                country_data.pop(country)
+
+    # pprint(crisis_countries)
+    return {"crisis_countries": crisis_countries}
+
+
+@app.get("/about", response_class=HTMLResponse)
+async def about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
+
+@app.get("/getmail", response_class=HTMLResponse)
+async def get_mail(email: str = Query(...), db: Session = Depends(get_db)):
+    try:
+        is_existing_email = db.query(AddEmail).filter(AddEmail.email == email).first()
+        if is_existing_email:
+            return RedirectResponse(url="/?error=true", status_code=303)
+
+        # Insert the new email into the database
+        db_article = AddEmail(email=email)
+        db.add(db_article)
+        db.commit()
+        db.refresh(db_article)
+
+        print(f"Inserted {email} into the database.")
+        return RedirectResponse(url="/?email_success=true", status_code=303)
+
+    except Exception as e:
+        print(f"Error inserting email: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@asynccontextmanager
+async def startup_event():
+    get_crisis_countries()
+
+    # schedule.every().day.at("08:00").do(send_newsletter)
+
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(60)
