@@ -8,6 +8,7 @@ import smtplib
 import schedule
 import requests
 import uvicorn
+import pandas as pd
 from pprint import pprint
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -33,6 +34,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+donation_links = pd.read_csv("data/all_countries_verified_donation_links.csv", encoding='latin-1', index_col=0).to_dict()["Link"]
 
 def get_db():
     db = SessionLocal()
@@ -144,8 +146,7 @@ async def get_donation_link(news):
     response = requests.post(os.environ["GEMINI_API_URL"], json=payload, params=params, headers=headers)
     response.raise_for_status()
     data = response.json()
-    text_response = (data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0]
-                    .get("text", "No donation link found"))
+    text_response = (data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No donation link found"))
 
     # Extract URL using regex
     url_match = re.search(r"https?://\S+", text_response)
@@ -324,13 +325,13 @@ async def startup_event():
     #     schedule.run_pending()
     #     time.sleep(60)
 
-import os
-import uvicorn
-
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # fallback for local testing
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
 
+
+# Uncomment the lines below to run the app with hot reloading
 # if __name__ == "__main__":
-#     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ["PORT"]), reload=True)
+#     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=True)
+
+# or write "uvicorn main:app --reload" in terminal

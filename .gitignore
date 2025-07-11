@@ -53,4 +53,5 @@ build/
 # test files
 test.py
 test2.py
-backup_main.py
+link.py
+dummy.py
