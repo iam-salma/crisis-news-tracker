@@ -1,10 +1,10 @@
 <p align="center">
-    <img width="100" height="100" alt="gitlogo" src="https://github.com/user-attachments/assets/6b06fa9b-f025-4e51-aff3-378157f8b016" alt="Crisis Aid Logo"/>
+    <img width="200" height="200" alt="gitlogo" src="https://github.com/user-attachments/assets/6b06fa9b-f025-4e51-aff3-378157f8b016" alt="Crisis Aid Logo"/>
 </p>
 
-<p align="center">
-  <h2><b>Crisis Aid</b> – 🌍 A humanitarian crisis news and donation platform</h2>
-</p>
+<h1 align="center">
+  <b>Crisis Aid</b> – Real-time News and Awareness Hub
+</h1>
 
 <p align="center">
   <a href="https://github.com/iam-salma/crisis-news-tracker/stargazers">
