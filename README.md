@@ -1,5 +1,8 @@
 # 🌍 CrisisAid — Real-Time News & Awareness Hub
 
+<img width="1024" height="1024" alt="gitlogo" src="https://github.com/user-attachments/assets/6b06fa9b-f025-4e51-aff3-378157f8b016" />
+[Overview](#overview) [Features](#features) [Tech Stack](#tech-stack) [Screenshots](#screenshots) [How to Run](#how-to-run) [Folder Structure](#folder-structure) [Contributing](#contributing) [License](#license) 
+
 CrisisAid is more than just a news site — it's your real-time window into global emergencies, designed to inform, support, and spark action when it matters most.
 
 Built with a powerful full-stack setup, CrisisAid pulls in live crisis updates from around the world using trusted public APIs. These updates are then brought to life on an interactive world map 🌐 with geo-tagged markers, country filters, and verified donation links 💸 — so you're never just a bystander.
