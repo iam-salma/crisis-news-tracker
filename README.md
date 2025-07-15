@@ -59,8 +59,8 @@ Join us in turning awareness into action ⚡.
 
 1. 📥 **Clone the repository** :
     ```bash
-    git clone https://github.com/iam-salma/CrisisAid-news-and-awareness-website.git
-    cd CrisisAid-news-and-awareness-website
+    git clone https://github.com/iam-salma/crisis-news-tracker.git
+    cd crisis-news-tracker
     ```
 
 2. 🐍 **Make sure you have Python 3 installed.** :
