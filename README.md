@@ -1,7 +1,26 @@
-# 🌍 CrisisAid — Real-Time News & Awareness Hub
+<p align="center">
+    <img width="100" height="100" alt="gitlogo" src="https://github.com/user-attachments/assets/6b06fa9b-f025-4e51-aff3-378157f8b016" alt="Crisis Aid Logo"/>
+</p>
 
-<img width="1024" height="1024" alt="gitlogo" src="https://github.com/user-attachments/assets/6b06fa9b-f025-4e51-aff3-378157f8b016" />
-[Overview](#overview) [Features](#features) [Tech Stack](#tech-stack) [Screenshots](#screenshots) [How to Run](#how-to-run) [Folder Structure](#folder-structure) [Contributing](#contributing) [License](#license) 
+<p align="center">
+  <b>Crisis Aid</b> – 🌍 A humanitarian crisis news and donation platform
+</p>
+
+<p align="center">
+  <a href="https://github.com/iam-salma/crisis-news-tracker/stargazers">
+    <img src="https://img.shields.io/github/stars/your-username/your-repo-name?style=social" alt="Stars"/>
+  </a>
+  <a href="https://github.com/iam-salma/crisis-news-tracker/fork">
+    <img src="https://img.shields.io/github/forks/your-username/your-repo-name?style=social" alt="Forks"/>
+  </a>
+  <a href="https://github.com/iam-salma/crisis-news-tracker/issues">
+    <img src="https://img.shields.io/github/issues/your-username/your-repo-name" alt="Issues"/>
+  </a>
+  <a href="https://github.com/iam-salma/crisis-news-tracker/pulls">
+    <img src="https://img.shields.io/github/issues-pr/iam-salma/crisis-news-tracker" alt="Pull Requests"/>
+  </a>
+  <img src="https://img.shields.io/github/last-commit/iam-salma/crisis-news-tracker" alt="Last Commit"/>
+</p>
 
 CrisisAid is more than just a news site — it's your real-time window into global emergencies, designed to inform, support, and spark action when it matters most.
 
