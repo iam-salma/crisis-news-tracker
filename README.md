@@ -3,18 +3,18 @@
 </p>
 
 <p align="center">
-  <b>Crisis Aid</b> – 🌍 A humanitarian crisis news and donation platform
+  <h2><b>Crisis Aid</b> – 🌍 A humanitarian crisis news and donation platform</h2>
 </p>
 
 <p align="center">
   <a href="https://github.com/iam-salma/crisis-news-tracker/stargazers">
-    <img src="https://img.shields.io/github/stars/your-username/your-repo-name?style=social" alt="Stars"/>
+    <img src="https://img.shields.io/github/stars/iam-salma/crisis-news-tracker?style=social" alt="Stars"/>
   </a>
   <a href="https://github.com/iam-salma/crisis-news-tracker/fork">
-    <img src="https://img.shields.io/github/forks/your-username/your-repo-name?style=social" alt="Forks"/>
+    <img src="https://img.shields.io/github/forks/iam-salma/crisis-news-tracker?style=social" alt="Forks"/>
   </a>
   <a href="https://github.com/iam-salma/crisis-news-tracker/issues">
-    <img src="https://img.shields.io/github/issues/your-username/your-repo-name" alt="Issues"/>
+    <img src="https://img.shields.io/github/issues/iam-salma/crisis-news-tracker" alt="Issues"/>
   </a>
   <a href="https://github.com/iam-salma/crisis-news-tracker/pulls">
     <img src="https://img.shields.io/github/issues-pr/iam-salma/crisis-news-tracker" alt="Pull Requests"/>
