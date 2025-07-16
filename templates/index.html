@@ -48,6 +48,19 @@
   </div>
 </div>
 
+{% if voice_ready %}
+<div class="container mb-4">
+  <div class="card p-3 rounded">
+    <div class="d-flex flex-column align-items-start">
+      <h5 class="mb-2"><i class="bi bi-volume-up-fill me-2"></i>🎧 Listen to Today's Crisis Summary</h5>
+      <audio controls class="w-100">
+        <source src="{{ url_for('static', path='assets/audio_summary/summary.mp3') }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <!-- Articles -->
 <div class="album my-3 bg-body-tertiary">

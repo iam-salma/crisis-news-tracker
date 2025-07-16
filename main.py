@@ -9,6 +9,7 @@ import schedule
 import requests
 import uvicorn
 import pandas as pd
+from pathlib import Path
 from pprint import pprint
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -25,6 +26,7 @@ from pydantic import BaseModel
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from gtts import gTTS
 
 from fastapi import FastAPI, Request, Depends, Query, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -35,6 +37,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 donation_links = pd.read_csv("data/all_countries_verified_donation_links.csv", encoding='latin-1', index_col=0).to_dict()["Link"]
+SUMMARY_MP3_PATH = Path("static/assets/audio_summary/summary.mp3")
+SUMMARY_TIMESTAMP_PATH = Path("static/assets/audio_summary/summary_timestamp.txt")
 
 def get_db():
     db = SessionLocal()
@@ -48,8 +52,7 @@ def fetch_news_from_api(country=None):
     params = {
         "apiKey": os.environ["NEWS_API_KEY"],
         "q": f"({country} AND (humanitarian+crisis -political+crisis -financial+crisis -president -movie -twitter))"
-            if country else
-                "humanitarian+crisis -political+crisis -financial+crisis -human+rights -president -movie -TV -twitter",
+            if country else "humanitarian+crisis -political+crisis -financial+crisis -human+rights -president -movie -TV -twitter",
         "searchln": "title,description,content",
         "excludeDomains": "lifesciencesworld.com,psychologytoday.com,smallwarsjournal.com,leicarumors.com,"
                         "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com",
@@ -115,6 +118,15 @@ async def insert_news_in_db(country=None):
         print(f"Error filling database with news: {e}")
 
 
+def clean_summary_text(text):
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # remove bold
+    text = re.sub(r"\*(.*?)\*", r"\1", text)      # remove italic
+    text = re.sub(r"^\s*[\*\-•]\s*", '', text, flags=re.MULTILINE)  # remove bullets
+    text = re.sub(r"^\s*#+\s*", '', text, flags=re.MULTILINE) # remove hashes
+    text = text.strip()
+    return text
+
+
 async def generate_content(content):
     payload = {
         "contents": [{
@@ -130,7 +142,9 @@ async def generate_content(content):
     response = requests.post(os.environ["GEMINI_API_URL"], json=payload, params=params, headers=headers)
     response.raise_for_status()
     data = response.json()
-    return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No content generated.")
+    text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No content generated.")
+    text = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", text)
+    return clean_summary_text(text)
 
 
 async def get_donation_link(news):
@@ -151,6 +165,29 @@ async def get_donation_link(news):
     # Extract URL using regex
     url_match = re.search(r"https?://\S+", text_response)
     return url_match.group(0) if url_match else "No valid donation link found"
+
+
+async def generate_audio_summary(filename="static/assets/audio_summary/summary.mp3"):
+    payload = {
+        "contents": [{
+            "parts": [{"text": """You are delivering a breaking-news report on global humanitarian crises.
+                                Report each crisis in one crisp sentence, like a live radio segment.
+                                Maintain a serious and professional tone. Do not use bullet points or special characters."""}]
+        }],
+        "generationConfig": {
+            "maxOutputTokens": 500
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    params = {"key": os.environ["GEMINI_API_KEY"]}
+    response = requests.post(os.environ["GEMINI_API_URL"], json=payload, headers=headers, params=params)
+    response.raise_for_status()
+    data = response.json()
+    text = data["candidates"][0]["content"]["parts"][0]["text"]
+    text = clean_summary_text(text)
+    tts = gTTS(text)
+    tts.save(filename)
+    return text
 
 
 def get_hero_image(country):
@@ -198,16 +235,44 @@ def send_newsletter():
             print(f"Error sending email to {recipient_email}: {e}")
 
 
+def is_audio_fresh():
+    if not SUMMARY_MP3_PATH.exists() or not SUMMARY_TIMESTAMP_PATH.exists():
+        return False
+
+    with open(SUMMARY_TIMESTAMP_PATH, "r") as f:
+        last_generated_date = f.read().strip()
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    return last_generated_date == today
+
+def mark_audio_updated():
+    with open(SUMMARY_TIMESTAMP_PATH, "w") as f:
+        f.write(datetime.now().strftime("%Y-%m-%d"))
+    print("audio updated.")
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     await insert_news_in_db()
     articles = db.query(NewsArticle).limit(30).all()
     py_articles = [PydanticNewsArticle.model_validate(article) for article in articles]
-    current_yr = datetime.now().strftime("%Y")  # for displaying copyright
+    
+    try:
+        if not is_audio_fresh():
+            summary_text = await generate_audio_summary()
+            mark_audio_updated()
+        else:
+            print("Using cached summary.mp3")
+        voice_ready = True
+    except Exception as e:
+        print("Voice generation failed:", e)
+        voice_ready = False
+
     return templates.TemplateResponse("index.html", {
         "request": request,
         "all_articles": py_articles,
-        "year": current_yr
+        "year": datetime.now().strftime("%Y"),
+        "voice_ready": voice_ready
     })
 
 
@@ -239,7 +304,7 @@ async def news_detail(request: Request, news_id: int, country: str, db: Session 
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    article.content = await generate_content(article.title+": "+article.description)
+    article.content = await generate_content(f"Title: {article.title}\nDescription: {article.description}")
     article.link = await get_donation_link(article.title)
     db.commit()
 
@@ -287,7 +352,7 @@ async def get_crisis_countries():
                         {"name": country, "news": article["title"], "img": img, "lat": lat, "lng": lng})
                     country_data.pop(country, None)
 
-    pprint(crisis_countries)
+    # pprint(crisis_countries)
     return {"crisis_countries": crisis_countries}
 
 

@@ -18,7 +18,7 @@
       <div class="col-lg-12">
           <ul class="list-group pb-2" style="border: none;">
               {% for point in article.content.split("\n") if point.strip() %}
-                <li class="lead list-group-item list-group-item-action" style="border: none;">{{ point.strip() }}</li>
+                <li class="list-group-item list-group-item-action" style="font-size: 1.25rem; border: none;">{{ point.strip() | safe}}</li>
               {% endfor %}
           </ul>
           <a class="lead" href="{{ article.url }}" target="_blank" style="text-decoration: None;color: indianred;">read more..</a>
