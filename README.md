@@ -97,7 +97,7 @@ Join us in turning awareness into action ⚡.
        
 10. 🏃**To Run the Project**:
      ```bash
-     python main.py
+     uvicorn main:app --reload
      ```
 ## 🌐 Live Demo
 
