@@ -191,19 +191,22 @@ async def generate_audio_summary(filename="static/assets/audio_summary/summary.m
 
 
 def get_hero_image(country):
-    params = {
-        "q": f"humanitarian+crisis+in+{country}",
-        "cx": os.environ["SEARCH_ENGINE_ID"],
-        "key": os.environ["CUSTOM_SEARCH_API_KEY"],
-        "searchType": "image",
-        "num": 1
-    }
-    response = requests.get(os.environ["CUSTOM_SEARCH_URL"], params=params)
-    response.raise_for_status()
-    data = response.json()
-    hero_image_url = data["items"][0]["link"]
-
-    return hero_image_url
+    try:
+        params = {
+            "q": f"humanitarian+crisis+in+{country}",
+            "cx": os.environ["SEARCH_ENGINE_ID"],
+            "key": os.environ["CUSTOM_SEARCH_API_KEY"],
+            "searchType": "image",
+            "num": 1
+        }
+        response = requests.get(os.environ["CUSTOM_SEARCH_URL"], params=params)
+        response.raise_for_status()
+        data = response.json()
+        hero_image_url = data["items"][0]["link"]
+        return hero_image_url
+    except Exception as e:
+        print(f"Error fetching image for {country}: {e}")
+        return None
 
 
 def send_newsletter():
