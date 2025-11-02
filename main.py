@@ -55,7 +55,7 @@ def fetch_news_from_api(country=None):
             if country else "humanitarian+crisis -political+crisis -financial+crisis -human+rights -president -movie -TV -twitter",
         "searchln": "title,description,content",
         "excludeDomains": "lifesciencesworld.com,psychologytoday.com,smallwarsjournal.com,leicarumors.com,"
-                        "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com",
+                        "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com,designboom.com,gizmodo.com",
         "language": "en",
     }
     response = requests.get(os.environ["NEWS_API_URL"], params=params)
@@ -132,10 +132,7 @@ async def generate_content(content):
         "contents": [{
             "parts": [{"text": f"Write a detailed, factual and structured news report based on the following summary: "
                             f"{content} in bullet points. Use specific details and avoid placeholders."}]
-        }],
-        "generationConfig": {
-            "maxOutputTokens": 500
-        }
+        }]
     }
     params = {"key": os.environ["GEMINI_API_KEY"]}
     headers = {"Content-Type": "application/json"}
@@ -174,9 +171,6 @@ async def generate_audio_summary(filename="static/assets/audio_summary/summary.m
                                 Report each crisis in one crisp sentence, like a live radio segment.
                                 Maintain a serious and professional tone. Do not use bullet points or special characters."""}]
         }],
-        "generationConfig": {
-            "maxOutputTokens": 500
-        }
     }
     headers = {"Content-Type": "application/json"}
     params = {"key": os.environ["GEMINI_API_KEY"]}
