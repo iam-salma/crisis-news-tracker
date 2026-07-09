@@ -55,3 +55,6 @@ test.py
 test2.py
 link.py
 dummy.py
+
+# Scraper cache
+data/cache/
