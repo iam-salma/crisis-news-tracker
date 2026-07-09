@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from schemas import NewsArticle as PydanticNewsArticle
 from models import SessionLocal, NewsArticle, AddEmail
 from pydantic import BaseModel
+from scraper import fetch_news as fetch_news_from_scraper, fetch_news_with_api_fallback
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -49,6 +50,19 @@ def get_db():
 
 
 def fetch_news_from_api(country=None):
+    """
+    Fetch crisis news — uses web scraper first, falls back to NewsAPI if available.
+    """
+    if "NEWS_API_KEY" in os.environ:
+        return fetch_news_with_api_fallback(
+            lambda c: _fetch_news_api_direct(c),
+            country,
+        )
+    return fetch_news_from_scraper(country)
+
+
+def _fetch_news_api_direct(country=None):
+    """Direct NewsAPI call — used as fallback when scraper returns too few results."""
     params = {
         "apiKey": os.environ["NEWS_API_KEY"],
         "q": f"({country} AND (humanitarian+crisis -political+crisis -financial+crisis -president -movie -twitter))"
@@ -62,7 +76,6 @@ def fetch_news_from_api(country=None):
     response.raise_for_status()
     articles = response.json().get("articles", [])
     articles_with_images = [article for article in articles if article.get("urlToImage")]
-    # sorting articles to get latest news on top
     sorted_articles = sorted(
         articles_with_images,
         key=lambda article: datetime.fromisoformat(article["publishedAt"].replace("Z", "+00:00")),
