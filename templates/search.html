@@ -1,52 +1,87 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!--        <div class="gcse-search"></div>-->
-<div class="container col-xxl-9 px-3">
-    <div class="row flex-lg-row-reverse align-items-center g-5">
-      <div class="col-10 col-sm-8 col-lg-6">
-        <img src="{{ hero_image }}" class="d-block mx-lg-auto img-fluid" width="700" height="500" loading="lazy">
-      </div>
-      <div class="col-lg-6">
-        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">News on {{ country }}</h1>
-        <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">
-          <a class="nav-link" target="_blank" href="{{ donation_link_hero }}">Donate Now!</a>
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="container my-4">
+    <!-- Breadcrumb & Search Header -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none"><i class="bi bi-house-door me-1"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Search: {{ country }}</li>
+        </ol>
+    </nav>
 
-<!-- Articles -->
-<div class="album my-3 bg-body-tertiary">
-  <div class="container">
-    <h3 class="border-bottom border-top py-3">
-      Latest News
-      <span class="badge" style="animation: blink 3s ease-in-out infinite;">New</span>
-    </h3>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 pt-2">
-      {% for article in all_articles %}
-      <div class="col">
-        <div class="card shadow-sm" style="height: 410px;">
-          <img src="{{ article.urlToImage }}" class="card-img-top" alt="Article Image" style="height: 225px; object-fit: cover;">
-          <div class="card-body">
-            <h5 class="card-title" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=country) }}">{{ article.title }}</a>
-            </h5>
-            <p class="card-text" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              {{ article.description }}
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <button type="button" class="btn btn-sm btn-outline-secondary">
-                <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=country) }}">Read More</a>
-              </button>
-              <small class="text-body-secondary">{{ article.publishedAt }}</small>
+    <!-- Country Hero Banner -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-body-tertiary">
+        <div class="row g-0 align-items-center">
+            <div class="col-lg-5 col-md-6 order-md-2">
+                <img src="{{ hero_image }}" class="img-fluid w-100" style="height: 320px; object-fit: cover;" alt="Crisis in {{ country }}" onerror="this.src='/static/assets/images/hero-active.jpg'">
             </div>
-          </div>
+            <div class="col-lg-7 col-md-6 order-md-1 p-4 p-lg-5">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Active Crisis Zone</span>
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ country }}</span>
+                    <span class="badge bg-primary-subtle text-primary">{{ all_articles | length }} Reports Found</span>
+                </div>
+
+                <h1 class="display-6 fw-bold mb-3">Humanitarian Situation in {{ country }}</h1>
+                <p class="text-body-secondary lead fs-6 mb-4">
+                    Tracking real-time frontline developments, humanitarian displacement, and verified emergency relief channels for {{ country }}.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-danger btn-md px-4 fw-semibold shadow-sm" target="_blank" href="{{ donation_link_hero }}">
+                        <i class="bi bi-heart-fill me-1"></i> Donate to {{ country }} Relief
+                    </a>
+                    <a class="btn btn-outline-secondary btn-md px-3 fw-semibold" href="/locate">
+                        <i class="bi bi-map me-1"></i> View on Crisis Map
+                    </a>
+                </div>
+            </div>
         </div>
-      </div>
-      {% endfor %}
     </div>
-  </div>
+
+    <!-- Crisis Articles Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h3 class="h4 fw-bold mb-0">
+            <i class="bi bi-newspaper text-danger me-2"></i>Latest Crisis Intelligence
+        </h3>
+        <span class="text-body-secondary small">Sorted by Recency</span>
+    </div>
+
+    {% if all_articles %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        {% for article in all_articles %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden d-flex flex-column hover-lift">
+                <div class="position-relative">
+                    <img src="{{ article.urlToImage }}" class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;" onerror="this.src='/static/assets/images/hero-active.jpg'">
+                </div>
+                <div class="card-body d-flex flex-column flex-grow-1 p-3">
+                    <h5 class="card-title fw-bold fs-6 mb-2 line-clamp-2" style="min-height: 2.5rem;">
+                        <a class="text-decoration-none text-body" href="{{ url_for('news_detail', news_id=article.id, country=country) }}">{{ article.title }}</a>
+                    </h5>
+                    <p class="card-text text-body-secondary small mb-3 flex-grow-1 line-clamp-3">
+                        {{ article.description or 'Active crisis monitoring and emergency relief operations underway.' }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                        <a href="{{ url_for('news_detail', news_id=article.id, country=country) }}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                            <i class="bi bi-card-text me-1"></i> Read Briefing
+                        </a>
+                        <small class="text-body-secondary"><i class="bi bi-calendar3 me-1"></i>{{ article.publishedAt }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-search display-3 text-body-tertiary mb-3"></i>
+        <h4>No articles found for "{{ country }}"</h4>
+        <p class="text-body-secondary">Try searching for another country or check the interactive crisis map.</p>
+        <a href="/locate" class="btn btn-primary">Open Crisis Radar</a>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

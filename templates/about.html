@@ -1,24 +1,129 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container my-5 ">
-    <div class="row justify-content-center">
-      <div class="col-md-8 text-center">
-        <h1 class="mb-4 display-4 fw-bold">About Us</h1>
-        <p class="lead">
-          Welcome to <strong>CrisisAid </strong>, your trusted source for reliable and up-to-date news on global crises.
-          We aim to shed light on critical events, including humanitarian challenges, natural disasters, and conflicts worldwide.
-        </p>
-        <p class="lead">
-          Our platform not only provides you with the latest news but also connects you with opportunities to make a difference.
-          Through detailed reports and links to trusted donation platforms, we empower you to take action in times of need.
-        </p>
-        <p class="lead">
-          At <strong>CrisisAid</strong>, we believe that staying informed is the first step toward building a better future. Together, we can raise awareness, drive change, and extend support to communities facing the toughest challenges.
-        </p>
-        <a href="https://www.crisisaid.org.uk/" target="_blank" class="btn btn-primary btn-lg mt-4">Contact Us</a>
-      </div>
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6 fw-semibold mb-3">
+                <i class="bi bi-shield-heart me-1"></i> Our Humanitarian Mission
+            </span>
+            <h1 class="display-5 fw-bold mb-3">Connecting Crisis Awareness with Direct Frontline Relief</h1>
+            <p class="lead text-body-secondary mx-auto" style="max-width: 800px;">
+                <strong>CrisisAid</strong> is an open humanitarian intelligence platform dedicated to real-time disaster monitoring, automated audio briefings, and verified non-profit aid distribution across active emergency zones worldwide.
+            </p>
+        </div>
     </div>
-  </div>
+
+    <!-- Impact & Capability Metrics -->
+    <div class="row row-cols-2 row-cols-md-4 g-3 mb-5 text-center">
+        <div class="col">
+            <div class="card p-3 shadow-sm border-0 rounded-4 bg-body-tertiary h-100">
+                <div class="text-danger display-6 mb-1"><i class="bi bi-globe2"></i></div>
+                <h3 class="fw-bold mb-0">195+</h3>
+                <small class="text-body-secondary fw-semibold">Countries & Territories</small>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card p-3 shadow-sm border-0 rounded-4 bg-body-tertiary h-100">
+                <div class="text-primary display-6 mb-1"><i class="bi bi-broadcast"></i></div>
+                <h3 class="fw-bold mb-0">Daily</h3>
+                <small class="text-body-secondary fw-semibold">Synthesized Audio Briefings</small>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card p-3 shadow-sm border-0 rounded-4 bg-body-tertiary h-100">
+                <div class="text-success display-6 mb-1"><i class="bi bi-patch-check-fill"></i></div>
+                <h3 class="fw-bold mb-0">100%</h3>
+                <small class="text-body-secondary fw-semibold">Verified NGO Corridors</small>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card p-3 shadow-sm border-0 rounded-4 bg-body-tertiary h-100">
+                <div class="text-warning display-6 mb-1"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h3 class="fw-bold mb-0">24/7</h3>
+                <small class="text-body-secondary fw-semibold">Automated Crisis Radar</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Pillars -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 p-4 shadow-sm border-0 rounded-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-3 p-3 mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-map-fill fs-4"></i>
+                </div>
+                <h4 class="fw-bold mb-2">1. Geospatial Radar</h4>
+                <p class="text-body-secondary small mb-0">
+                    Interactive mapping tracking armed conflicts, earthquakes, floods, and refugee displacement corridors with live intensity heatmaps and field aid hubs.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4 shadow-sm border-0 rounded-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3 p-3 mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-cpu-fill fs-4"></i>
+                </div>
+                <h4 class="fw-bold mb-2">2. Action Intelligence</h4>
+                <p class="text-body-secondary small mb-0">
+                    Concise executive takeaways, 60-second origin timelines, and synthesized radio briefings designed to provide rapid context without sensationalism.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4 shadow-sm border-0 rounded-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-3 p-3 mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-heart-pulse-fill fs-4"></i>
+                </div>
+                <h4 class="fw-bold mb-2">3. Direct Aid Corridors</h4>
+                <p class="text-body-secondary small mb-0">
+                    Direct routing to accredited frontline responders (MSF, WFP, ICRC, UNHCR) and verified local national emergency funds with zero intermediary fees.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verified Relief Partners Section -->
+    <div class="card shadow-sm border-0 rounded-4 p-4 p-lg-5 mb-5 bg-body-tertiary">
+        <h3 class="fw-bold text-center mb-2"><i class="bi bi-award-fill text-danger me-2"></i>Verified Humanitarian Relief Partners</h3>
+        <p class="text-center text-body-secondary mb-4 small">We partner with and direct emergency relief funds to internationally accredited non-governmental organizations.</p>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
+            <div class="col">
+                <div class="card h-100 p-3 border shadow-none rounded-3 text-center">
+                    <i class="bi bi-heart-pulse-fill text-danger fs-2 mb-2"></i>
+                    <h6 class="fw-bold mb-1">MSF (Doctors Without Borders)</h6>
+                    <small class="text-body-secondary mb-3 d-block">Emergency Trauma Care</small>
+                    <a href="https://www.msf.org/donate" target="_blank" class="btn btn-sm btn-outline-danger mt-auto">Donate ↗</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 p-3 border shadow-none rounded-3 text-center">
+                    <i class="bi bi-basket2-fill text-primary fs-2 mb-2"></i>
+                    <h6 class="fw-bold mb-1">WFP (World Food Programme)</h6>
+                    <small class="text-body-secondary mb-3 d-block">Child Nutrition & Food Rations</small>
+                    <a href="https://www.wfp.org/donate" target="_blank" class="btn btn-sm btn-outline-primary mt-auto">Donate ↗</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 p-3 border shadow-none rounded-3 text-center">
+                    <i class="bi bi-house-heart-fill text-info fs-2 mb-2"></i>
+                    <h6 class="fw-bold mb-1">UNHCR (UN Refugee Agency)</h6>
+                    <small class="text-body-secondary mb-3 d-block">Tents, Shelter & Protection</small>
+                    <a href="https://donate.unhcr.org/" target="_blank" class="btn btn-sm btn-outline-info mt-auto">Donate ↗</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 p-3 border shadow-none rounded-3 text-center">
+                    <i class="bi bi-shield-plus text-danger fs-2 mb-2"></i>
+                    <h6 class="fw-bold mb-1">International Red Cross (ICRC)</h6>
+                    <small class="text-body-secondary mb-3 d-block">Neutral Humanitarian Corridors</small>
+                    <a href="https://www.icrc.org/en/donate" target="_blank" class="btn btn-sm btn-outline-danger mt-auto">Donate ↗</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

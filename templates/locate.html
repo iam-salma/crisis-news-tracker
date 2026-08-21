@@ -1,8 +1,519 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container">
-    <div id="map" style="height: 100vh;"></div>
+<div class="container-fluid container-xl px-2 px-md-3 my-3">
+    <!-- Header Banner -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Live Geo Radar</span>
+                <span class="text-body-secondary small">Real-Time Global Monitoring & Aid Corridors</span>
+            </div>
+            <h2 class="h4 h3-md fw-bold mb-0">Global Humanitarian Crisis Map & Hotspot Radar</h2>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 px-sm-3 py-2 fs-6 fw-semibold">
+                <span class="pulse-icon bg-danger me-1"></span> <span id="stat-hotspots">--</span> Hotspots
+            </div>
+            <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 px-sm-3 py-2 fs-6 fw-semibold">
+                <i class="bi bi-globe-americas me-1"></i> <span id="stat-countries">--</span> Countries
+            </div>
+            <div class="badge bg-success-subtle text-success border border-success-subtle px-2 px-sm-3 py-2 fs-6 fw-semibold">
+                <i class="bi bi-shield-plus me-1"></i> 7 Corridors
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content: Split Sidebar & Map -->
+    <div class="row g-3">
+        <!-- Hotspot Explorer Sidebar -->
+        <div class="col-12 col-lg-4 order-2 order-lg-1">
+            <div class="card shadow-sm border-0 h-100 p-3 rounded-4 bg-body-tertiary">
+                <!-- Search & Filters -->
+                <div class="mb-3">
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-body-secondary"></i></span>
+                        <input type="text" id="hotspot-search" class="form-control border-start-0 ps-0" placeholder="Filter by country or crisis..." onkeyup="filterHotspots()">
+                    </div>
+
+                    <!-- Region Filter Pills -->
+                    <div class="d-flex flex-wrap gap-1" id="region-filter-group">
+                        <button type="button" class="btn btn-sm btn-primary filter-btn active" onclick="setRegionFilter('All', this)">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="setRegionFilter('Africa', this)">Africa</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="setRegionFilter('Middle East', this)">Middle East</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="setRegionFilter('Asia', this)">Asia</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="setRegionFilter('Europe', this)">Europe</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="setRegionFilter('Latin America & Caribbean', this)">Americas</button>
+                    </div>
+                </div>
+
+                <!-- Hotspots List Container -->
+                <div class="locate-sidebar pe-1" id="hotspots-list">
+                    <div class="text-center py-4 text-body-secondary" id="hotspots-loading">
+                        <div class="spinner-border spinner-border-sm text-danger mb-2" role="status"></div>
+                        <div>Loading active crisis zones...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Leaflet Map -->
+        <div class="col-12 col-lg-8 order-1 order-lg-2">
+            <div class="locate-map-container shadow-sm position-relative rounded-4 overflow-hidden">
+                <div id="map" style="height: 100%; width: 100%; min-height: 350px;"></div>
+
+                <!-- Floating Controls Overlay -->
+                <div class="map-control-overlay d-flex flex-column gap-2">
+                    <div class="btn-group-vertical shadow-sm" role="group" aria-label="Map Layer Controls">
+                        <button type="button" class="btn btn-sm btn-light border fw-semibold d-flex align-items-center gap-1 active" id="btn-mode-pins" onclick="setMapMode('pins')">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                            <span class="d-none d-sm-inline">Pins</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border fw-semibold d-flex align-items-center gap-1" id="btn-mode-heat" onclick="setMapMode('heat')">
+                            <i class="bi bi-fire text-warning"></i>
+                            <span class="d-none d-sm-inline">Heatmap</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border fw-semibold d-flex align-items-center gap-1 active" id="btn-toggle-corridors" onclick="toggleCorridors()">
+                            <i class="bi bi-shield-plus text-success"></i>
+                            <span class="d-none d-sm-inline">Corridors</span>
+                        </button>
+                    </div>
+
+                    <button class="btn btn-light btn-sm shadow-sm border fw-semibold d-flex align-items-center gap-1" onclick="fitAllMarkers()" title="Fit all markers in view">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                        <span class="d-none d-sm-inline">Fit All</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    let allHotspots = [];
+    let currentRegion = 'All';
+    let markersMap = {};
+    let mapMode = 'pins'; // 'pins' | 'heat'
+    let heatLayer = null;
+    let corridorsLayerGroup = null;
+    let showCorridors = true;
+
+    // Verified Global Humanitarian Aid Corridors
+    const RELIEF_CORRIDORS = [
+        {
+            name: "Port Sudan Emergency Maritime Hub",
+            country: "Sudan",
+            lat: 19.6158,
+            lng: 37.2164,
+            type: "Maritime & Air Bridge",
+            agency: "WFP / UNHAS / Red Cross",
+            detail: "Primary intake corridor for famine relief rations, cold-chain vaccines, and emergency trauma kits."
+        },
+        {
+            name: "Al-Arish / Rafah Logistics Corridor",
+            country: "Egypt / Palestine",
+            lat: 31.1325,
+            lng: 33.8033,
+            type: "Convoys & Field Triage",
+            agency: "UNRWA / Egyptian Red Crescent / MSF",
+            detail: "Essential medical staging ground, ambulance dispatch, and daily water tanker coordination."
+        },
+        {
+            name: "Rzeszow Logistics Hub",
+            country: "Poland / Ukraine",
+            lat: 50.0412,
+            lng: 21.9991,
+            type: "Rail & Road Logistics Hub",
+            agency: "UNHCR / ICRC",
+            detail: "Humanitarian transit corridor routing power generators, winterization tents, and medical kits to Ukraine."
+        },
+        {
+            name: "Cucuta Relief Bridge",
+            country: "Colombia / Venezuela Border",
+            lat: 7.8939,
+            lng: -72.5078,
+            type: "Transit & Nutrition Triage",
+            agency: "UNHCR / MSF",
+            detail: "Mobile clinics, infant nutrition packs, and refugee legal protection corridor."
+        },
+        {
+            name: "Cox's Bazar Humanitarian Logistics Base",
+            country: "Bangladesh",
+            lat: 21.4272,
+            lng: 92.0058,
+            type: "Refugee Camp Corridor",
+            agency: "IOM / WFP / UNHCR",
+            detail: "Clean water purification distribution, cyclone shelter retrofitting, and emergency food rations."
+        },
+        {
+            name: "Goma Emergency Response Base",
+            country: "Democratic Republic of the Congo",
+            lat: -1.6792,
+            lng: 29.2228,
+            type: "Epidemic & IDP Triage Base",
+            agency: "MSF / WHO / UNICEF",
+            detail: "Cholera/Ebola treatment units, clean water chlorination, and displaced family protection units."
+        },
+        {
+            name: "Nairobi Regional Air Bridge",
+            country: "Kenya / Horn of Africa",
+            lat: -1.2921,
+            lng: 36.8219,
+            type: "Regional Air Bridge (UNHAS)",
+            agency: "UNHAS / WFP",
+            detail: "Air transport corridor deploying rapid emergency response units across Somalia, Ethiopia, and South Sudan."
+        }
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initLocateMap();
+    });
+
+    function initLocateMap() {
+        const mapEl = document.getElementById('map');
+        if (!mapEl) return;
+
+        map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            minZoom: 2,
+            maxZoom: 18,
+            scrollWheelZoom: true
+        });
+
+        lightModeLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        darkModeLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap & CartoDB'
+        });
+
+        const isDark = localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        if (isDark) {
+            darkModeLayer.addTo(map);
+        } else {
+            lightModeLayer.addTo(map);
+        }
+
+        corridorsLayerGroup = L.layerGroup().addTo(map);
+        renderCorridors();
+
+        fetch('/get_crisis_countries')
+            .then(res => res.json())
+            .then(data => {
+                allHotspots = data.crisis_countries || [];
+                const totalHotspots = data.total_hotspots || allHotspots.length;
+                const totalCountries = data.total_countries || (new Set(allHotspots.map(h => h.country || h.name))).size;
+                document.getElementById('stat-hotspots').textContent = totalHotspots;
+                document.getElementById('stat-countries').textContent = totalCountries;
+                
+                renderHotspotList(allHotspots);
+                plotMarkers(allHotspots);
+            })
+            .catch(err => {
+                console.error('Failed to load crisis hotspots:', err);
+                document.getElementById('hotspots-list').innerHTML = `
+                    <div class="alert alert-warning small mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Unable to load live crisis hotspots. Please refresh the page.
+                    </div>
+                `;
+            });
+    }
+
+    function renderCorridors() {
+        if (!corridorsLayerGroup) return;
+        corridorsLayerGroup.clearLayers();
+
+        RELIEF_CORRIDORS.forEach(c => {
+            const corridorIcon = L.divIcon({
+                className: 'custom-corridor-wrapper',
+                html: `<div class="corridor-marker-pin" title="${escapeHtml(c.name)} (${escapeHtml(c.country)})"><i class="bi bi-shield-fill-check"></i></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+                popupAnchor: [0, -14]
+            });
+
+            const popupHtml = `
+                <div style="max-width: 280px; font-family: inherit;">
+                    <div class="p-2">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-success text-white fw-bold" style="font-size: 0.68rem;"><i class="bi bi-shield-fill-check me-1"></i>Relief Corridor</span>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.68rem;">${escapeHtml(c.country)}</span>
+                        </div>
+                        <h6 class="fw-bold mb-1" style="font-size: 0.88rem;">${escapeHtml(c.name)}</h6>
+                        <div class="text-success fw-semibold small mb-1"><i class="bi bi-building me-1"></i>${escapeHtml(c.agency)}</div>
+                        <p class="text-body-secondary small mb-2" style="font-size: 0.78rem;">${escapeHtml(c.detail)}</p>
+                        <a href="https://www.icrc.org/en/donate" target="_blank" class="btn btn-success btn-sm w-100" style="font-size: 0.75rem;">
+                            <i class="bi bi-heart-fill me-1"></i> Support Aid Corridor
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            L.marker([c.lat, c.lng], { icon: corridorIcon })
+                .addTo(corridorsLayerGroup)
+                .bindPopup(popupHtml);
+        });
+    }
+
+    function toggleCorridors() {
+        showCorridors = !showCorridors;
+        const btn = document.getElementById('btn-toggle-corridors');
+        if (showCorridors) {
+            corridorsLayerGroup.addTo(map);
+            btn.classList.add('active');
+        } else {
+            map.removeLayer(corridorsLayerGroup);
+            btn.classList.remove('active');
+        }
+    }
+
+    function setMapMode(mode) {
+        mapMode = mode;
+        const btnPins = document.getElementById('btn-mode-pins');
+        const btnHeat = document.getElementById('btn-mode-heat');
+
+        if (mode === 'pins') {
+            btnPins.classList.add('active');
+            btnHeat.classList.remove('active');
+            if (heatLayer && map.hasLayer(heatLayer)) {
+                map.removeLayer(heatLayer);
+            }
+            Object.values(markersMap).forEach(m => m.addTo(map));
+        } else {
+            btnHeat.classList.add('active');
+            btnPins.classList.remove('active');
+            renderHeatmap(allHotspots);
+        }
+    }
+
+    function renderHeatmap(hotspots) {
+        if (heatLayer && map.hasLayer(heatLayer)) {
+            map.removeLayer(heatLayer);
+        }
+
+        const heatData = [];
+        hotspots.forEach(h => {
+            const lat = h.lat || (Array.isArray(h.latlng) ? h.latlng[0] : null);
+            const lng = h.lng || (Array.isArray(h.latlng) ? h.latlng[1] : null);
+            if (lat && lng) {
+                const intensity = h.urgency === 'CRITICAL' ? 1.0 : 0.6;
+                heatData.push([lat, lng, intensity]);
+            }
+        });
+
+        if (window.L && typeof window.L.heatLayer === 'function' && heatData.length > 0) {
+            heatLayer = L.heatLayer(heatData, {
+                radius: 35,
+                blur: 22,
+                maxZoom: 7,
+                max: 1.0,
+                gradient: { 0.2: '#0d6efd', 0.4: '#20c997', 0.6: '#ffc107', 0.8: '#fd7e14', 1.0: '#dc3545' }
+            }).addTo(map);
+        }
+    }
+
+    function plotMarkers(hotspots) {
+        Object.values(markersMap).forEach(m => map.removeLayer(m));
+        markersMap = {};
+
+        const bounds = [];
+
+        hotspots.forEach(h => {
+            const lat = h.lat || (Array.isArray(h.latlng) ? h.latlng[0] : null);
+            const lng = h.lng || (Array.isArray(h.latlng) ? h.latlng[1] : null);
+
+            if (lat && lng) {
+                const country = h.country || h.name || 'Emergency Zone';
+                const title = h.title || h.news || 'Humanitarian Emergency';
+                const description = h.description || '';
+                const image = h.image || h.img || '/static/assets/images/hero-active.jpg';
+                const urgency = h.urgency || 'HIGH';
+                const id = h.id || Math.floor(Math.random() * 10000);
+                const briefingUrl = h.briefing_url || `/news_article/${id}/${encodeURIComponent(country)}`;
+                const donateUrl = h.donate_url || 'https://www.redcross.org/donate/donation.html/';
+
+                const isCritical = urgency === 'CRITICAL';
+                const markerClass = isCritical ? 'pulsing-marker-critical' : 'pulsing-marker-high';
+
+                const customIcon = L.divIcon({
+                    className: 'custom-crisis-pin',
+                    html: `<div class="${markerClass}" title="${escapeHtml(country)}: ${escapeHtml(title)}"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10],
+                    popupAnchor: [0, -10]
+                });
+
+                const popupHtml = `
+                    <div style="max-width: 280px; font-family: inherit;">
+                        <img src="${image}" alt="${escapeHtml(country)}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 8px 8px 0 0;" onerror="this.src='/static/assets/images/hero-active.jpg'" />
+                        <div class="p-2">
+                            <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                <span class="badge ${isCritical ? 'bg-danger text-white' : 'bg-warning text-dark'} fw-bold" style="font-size: 0.68rem;">${urgency}</span>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.68rem;">${escapeHtml(country)}</span>
+                            </div>
+                            <h6 class="fw-bold mb-1 line-clamp-2" style="font-size: 0.88rem; line-height: 1.3;">${escapeHtml(title)}</h6>
+                            <p class="text-body-secondary small mb-2 line-clamp-2" style="font-size: 0.78rem;">${escapeHtml(description)}</p>
+                            <div class="d-flex gap-1 pt-1 border-top">
+                                <a href="${briefingUrl}" class="btn btn-primary btn-sm w-50" style="font-size: 0.75rem;">
+                                    <i class="bi bi-card-text me-1"></i> Briefing
+                                </a>
+                                <a href="${donateUrl}" target="_blank" class="btn btn-outline-danger btn-sm w-50" style="font-size: 0.75rem;">
+                                    <i class="bi bi-heart-fill me-1"></i> Donate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const marker = L.marker([lat, lng], { icon: customIcon });
+                if (mapMode === 'pins') {
+                    marker.addTo(map);
+                }
+                marker.bindPopup(popupHtml);
+
+                marker.on('click', () => {
+                    highlightSidebarCard(id);
+                });
+
+                markersMap[id] = marker;
+                bounds.push([lat, lng]);
+            }
+        });
+
+        if (mapMode === 'heat') {
+            renderHeatmap(hotspots);
+        }
+
+        if (bounds.length > 0 && mapMode === 'pins') {
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 6 });
+        }
+    }
+
+    function renderHotspotList(hotspots) {
+        const listEl = document.getElementById('hotspots-list');
+        if (!hotspots || hotspots.length === 0) {
+            listEl.innerHTML = `
+                <div class="text-center py-4 text-body-secondary">
+                    <i class="bi bi-search fs-3 d-block mb-2"></i>
+                    No crisis hotspots matching your filter.
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        hotspots.forEach(h => {
+            const country = h.country || h.name || 'Emergency Zone';
+            const title = h.title || h.news || 'Humanitarian Emergency';
+            const image = h.image || h.img || '/static/assets/images/hero-active.jpg';
+            const urgency = h.urgency || 'HIGH';
+            const continent = h.continent || 'Global';
+            const id = h.id || Math.floor(Math.random() * 10000);
+            const lat = h.lat || (Array.isArray(h.latlng) ? h.latlng[0] : 0);
+            const lng = h.lng || (Array.isArray(h.latlng) ? h.latlng[1] : 0);
+
+            const isCritical = urgency === 'CRITICAL';
+            const severityClass = isCritical ? 'severity-critical' : 'severity-high';
+            const badgeClass = isCritical ? 'bg-danger text-white' : 'bg-warning text-dark';
+
+            html += `
+                <div class="card mb-2 hotspot-card ${severityClass} border p-2 shadow-none rounded-3" id="card-${id}" onclick="focusHotspot(${id}, ${lat}, ${lng})">
+                    <div class="d-flex align-items-start gap-2">
+                        <img src="${image}" alt="${escapeHtml(country)}" class="rounded-2" style="width: 55px; height: 55px; object-fit: cover; flex-shrink: 0;" onerror="this.src='/static/assets/images/hero-active.jpg'" />
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                <span class="fw-bold text-truncate small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${escapeHtml(country)}</span>
+                                <span class="badge ${badgeClass}" style="font-size: 0.65rem;">${urgency}</span>
+                            </div>
+                            <div class="text-truncate-2 small fw-semibold text-body mb-1" style="font-size: 0.8rem; line-height: 1.25;">
+                                ${escapeHtml(title)}
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.65rem;">${escapeHtml(continent)}</span>
+                                <span class="text-primary small fw-semibold" style="font-size: 0.75rem;">
+                                    Locate <i class="bi bi-arrow-right-short"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        listEl.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function focusHotspot(id, lat, lng) {
+        highlightSidebarCard(id);
+
+        if (map && lat && lng) {
+            if (mapMode === 'heat') {
+                setMapMode('pins');
+            }
+            map.flyTo([lat, lng], 6, { animate: true, duration: 1.2 });
+            const marker = markersMap[id];
+            if (marker) {
+                setTimeout(() => marker.openPopup(), 1200);
+            }
+        }
+    }
+
+    function highlightSidebarCard(id) {
+        document.querySelectorAll('.hotspot-card').forEach(c => c.classList.remove('active-hotspot', 'bg-body-tertiary'));
+        const card = document.getElementById(`card-${id}`);
+        if (card) {
+            card.classList.add('active-hotspot', 'bg-body-tertiary');
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function setRegionFilter(region, btnEl) {
+        currentRegion = region;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('btn-primary', 'active');
+            b.classList.add('btn-outline-secondary');
+        });
+        btnEl.classList.remove('btn-outline-secondary');
+        btnEl.classList.add('btn-primary', 'active');
+
+        filterHotspots();
+    }
+
+    function filterHotspots() {
+        const query = (document.getElementById('hotspot-search').value || '').toLowerCase().trim();
+
+        const filtered = allHotspots.filter(h => {
+            const continent = h.continent || 'Global';
+            const matchesRegion = (currentRegion === 'All') || (continent.toLowerCase() === currentRegion.toLowerCase());
+            const textToSearch = `${h.country || ''} ${h.title || ''} ${h.description || ''} ${h.crisis_type || ''}`.toLowerCase();
+            const matchesQuery = !query || textToSearch.includes(query);
+            return matchesRegion && matchesQuery;
+        });
+
+        renderHotspotList(filtered);
+        plotMarkers(filtered);
+    }
+
+    function fitAllMarkers() {
+        const coords = [];
+        Object.values(markersMap).forEach(m => coords.push(m.getLatLng()));
+        if (coords.length > 0) {
+            map.fitBounds(L.latLngBounds(coords), { padding: [30, 30] });
+        }
+    }
+</script>
 
 {% endblock %}

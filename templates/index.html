@@ -1,39 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Carousel -->
-<div class="container mb-3">
-  <div id="responsiveCarousel" class="carousel slide" data-bs-ride="carousel">
+<!-- Dynamic Breaking News Carousel -->
+<div class="container-fluid container-xl mb-4 px-3">
+  <div id="responsiveCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel" data-bs-interval="6000">
     <!-- Indicators -->
     <div class="carousel-indicators">
-      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-      <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      {% for slide in carousel_slides %}
+        <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% else %}false{% endif %}" aria-label="Slide {{ loop.index }}"></button>
+      {% endfor %}
     </div>
 
     <!-- Carousel Items -->
     <div class="carousel-inner">
-      <div class="carousel-item active" style="background-image: url('../static/assets/images/hero-active.jpg')">
-        <div class="carousel-caption text-start">
-          <h1>Stay Updated on Global Crises</h1>
-          <p class="lead">Get the latest news on humanitarian crises, natural disasters, and conflicts from around the world. Stay informed and make a difference.</p>
-          <button class="btn btn-lg btn-primary" type="button" onclick="window.location.href='#target-section';">Subscribe To Our Newsletter!</button>
+      {% for slide in carousel_slides %}
+      <div class="carousel-item {% if loop.first %}active{% endif %}" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.88) 100%), url('{{ slide.image }}');">
+        <div class="carousel-caption text-start p-3 p-sm-4 p-md-5 pb-4">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Breaking Spotlight</span>
+            <span class="badge bg-dark bg-opacity-75"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ slide.country }}</span>
+            <span class="badge bg-dark bg-opacity-75 d-none d-sm-inline"><i class="bi bi-calendar3 me-1"></i> {{ slide.publishedAt }}</span>
+          </div>
+          <h1 class="carousel-headline fw-bold text-white mb-2 text-shadow">
+            {{ slide.title }}
+          </h1>
+          <p class="lead text-white-50 mb-3 d-none d-md-block line-clamp-2" style="max-width: 760px;">
+            {{ slide.description }}
+          </p>
+          <div class="d-flex flex-column flex-sm-row gap-2 pt-1">
+            <a href="{{ url_for('news_detail', news_id=slide.id, country=slide.country) }}" class="btn btn-primary btn-md fw-semibold px-4 text-center">
+              <i class="bi bi-card-text me-1"></i> Read Crisis Briefing
+            </a>
+            <a href="{{ slide.donate_link }}" target="_blank" class="btn btn-outline-light btn-md fw-semibold px-3 text-center">
+              <i class="bi bi-heart-fill text-danger me-1"></i> Donate to Relief
+            </a>
+          </div>
         </div>
       </div>
-      <div class="carousel-item" style="background-image: url('../static/assets/images/hero2.jpg');">
-        <div class="carousel-caption text-start">
-          <h1>Help When It Matters Most</h1>
-          <p class="lead">Learn how you can contribute to relief efforts through trusted organizations. Every small step can create big changes.</p>
-          <p><a class="btn btn-lg btn-primary" href="https://www.redcross.org/donate/donation.html/" target="_blank">Donate</a></p>
-        </div>
-      </div>
-      <div class="carousel-item" style="background-image: url('../static/assets/images/hero3.jpg');">
-        <div class="carousel-caption text-start">
-          <h1>Spotlight: Gaza</h1>
-          <p class="lead">Explore in-depth coverage of ongoing challenges in Gaza. Understand the causes and what’s being done to help.</p>
-          <p><a class="btn btn-lg btn-primary" href="https://donate.unrwa.org/int/en/general" target="_blank">Donate To Gaza</a></p>
-        </div>
-      </div>
+      {% endfor %}
     </div>
 
     <!-- Controls -->
@@ -49,43 +53,64 @@
 </div>
 
 {% if voice_ready %}
-<div class="container mb-4">
-  <div class="card p-3 rounded">
-    <div class="d-flex flex-column align-items-start">
-      <h5 class="mb-2"><i class="bi bi-volume-up-fill me-2"></i>🎧 Listen to Today's Crisis Summary</h5>
-      <audio controls class="w-100">
-        <source src="{{ url_for('static', path='assets/audio_summary/summary.mp3') }}" type="audio/mpeg">
-        Your browser does not support the audio element.
-      </audio>
+<div class="container-fluid container-xl mb-4 px-3">
+  <div class="card p-3 p-sm-4 rounded-4 shadow-sm border-0 bg-body-tertiary">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Fast Audio Dispatch</span>
+          <span class="text-body-secondary small">Daily Radio Synthesis</span>
+        </div>
+        <h5 class="fw-bold mb-0">🎧 Listen to Today's Global Humanitarian Audio Summary</h5>
+      </div>
+      <div class="w-100 flex-md-grow-1" style="max-width: 480px;">
+        <div class="d-flex align-items-center gap-2 mb-1 justify-content-md-end">
+          <span class="small text-body-secondary fw-semibold">Pace:</span>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Audio Speed">
+            <button type="button" class="btn btn-outline-secondary btn-speed py-0 px-2 active" onclick="setAudioSpeed('global-audio', 1.15, this)">1.15x</button>
+            <button type="button" class="btn btn-outline-secondary btn-speed py-0 px-2" onclick="setAudioSpeed('global-audio', 1.25, this)">1.25x</button>
+            <button type="button" class="btn btn-outline-secondary btn-speed py-0 px-2" onclick="setAudioSpeed('global-audio', 1.0, this)">1.0x</button>
+          </div>
+        </div>
+        <audio id="global-audio" controls class="w-100" style="border-radius: 8px;">
+          <source src="{{ url_for('static', path='assets/audio_summary/summary.mp3') }}?v={{ audio_version }}" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
     </div>
   </div>
 </div>
 {% endif %}
 
-<!-- Articles -->
-<div class="album my-3 bg-body-tertiary">
-  <div class="container">
-    <h3 class="border-bottom border-top py-3">
-      Latest News
-      <span class="badge" style="animation: blink 3s ease-in-out infinite;">New</span>
-    </h3>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 pt-2">
+<!-- Crisis Articles Feed -->
+<div class="album my-3 py-3 bg-body-tertiary">
+  <div class="container-fluid container-xl px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+      <h3 class="h4 fw-bold mb-0">
+        <i class="bi bi-newspaper text-danger me-2"></i>Latest Global Crisis Reports
+      </h3>
+      <span class="badge bg-danger text-white px-2 py-1" style="animation: blink 3s ease-in-out infinite;">Live Feed</span>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 g-md-4 pt-1">
       {% for article in all_articles %}
       <div class="col">
-        <div class="card shadow-sm" style="height: 410px;">
-          <img src="{{ article.urlToImage }}" class="card-img-top" alt="Article Image" style="height: 225px; object-fit: cover;">
-          <div class="card-body">
-            <h5 class="card-title" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=None) }}">{{ article.title }}</a>
+        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden d-flex flex-column hover-lift">
+          <div class="position-relative">
+            <img src="{{ article.urlToImage }}" class="card-img-top" alt="{{ article.title }}" style="height: 210px; object-fit: cover;" onerror="this.src='/static/assets/images/hero-active.jpg'">
+          </div>
+          <div class="card-body d-flex flex-column flex-grow-1 p-3">
+            <h5 class="card-title fw-bold fs-6 mb-2 line-clamp-2" style="min-height: 2.5rem;">
+              <a class="text-decoration-none text-body" href="{{ url_for('news_detail', news_id=article.id, country=None) }}">{{ article.title }}</a>
             </h5>
-            <p class="card-text" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              {{ article.description }}
+            <p class="card-text text-body-secondary small mb-3 flex-grow-1 line-clamp-3">
+              {{ article.description or 'Real-time humanitarian situation monitoring and emergency relief dispatch.' }}
             </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <button type="button" class="btn btn-sm btn-outline-secondary">
-                <a class="nav-link" href="{{ url_for('news_detail', news_id=article.id, country=None) }}">Read More</a>
-              </button>
-              <small class="text-body-secondary">{{ article.publishedAt }}</small>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+              <a href="{{ url_for('news_detail', news_id=article.id, country=None) }}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                <i class="bi bi-card-text me-1"></i> Read Briefing
+              </a>
+              <small class="text-body-secondary"><i class="bi bi-calendar3 me-1"></i>{{ article.publishedAt }}</small>
             </div>
           </div>
         </div>

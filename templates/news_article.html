@@ -1,39 +1,234 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container col-xxl-9 px-3">
-    <div class="row flex-lg-row-reverse align-items-center g-5">
-      <div class="col-10 col-sm-8 col-lg-6">
-        <img src="{{ article.urlToImage }}" class="d-block mx-lg-auto img-fluid" width="700" height="500" loading="lazy">
-      </div>
-      <div class="col-lg-6">
-        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ article.title }}</h1>
-        <h3>{{ article.description }}</h3>
-      </div>
-    </div>
+<div class="container py-3">
+  <!-- Top Navigation & Breadcrumb -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none text-danger"><i class="bi bi-house-door me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="/search?country={{ detected_country }}" class="text-decoration-none text-danger">{{ detected_country }}</a></li>
+        <li class="breadcrumb-item active text-body-secondary" aria-current="page">Briefing #{{ article.id }}</li>
+      </ol>
+    </nav>
+    <a href="{{ url_for('home') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to News Feed
+    </a>
   </div>
 
-<div class="container col-xxl-9 px-3 py-5">
-    <div class="row flex-lg-row-reverse align-items-center g-5">
-      <div class="col-lg-12">
-          <ul class="list-group pb-2" style="border: none;">
-              {% for point in article.content.split("\n") if point.strip() %}
-                <li class="list-group-item list-group-item-action" style="font-size: 1.25rem; border: none;">{{ point.strip() | safe}}</li>
-              {% endfor %}
+  <!-- Main Intelligence Grid (2 Balanced Columns) -->
+  <div class="row g-4 align-items-start">
+    <!-- Left Column: Unified In-Depth Crisis Article -->
+    <div class="col-lg-8">
+      <div class="card crisis-card p-4 p-md-5 border-0 shadow-sm rounded-4">
+        <!-- Severity & Category Badges -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 pb-2 border-bottom">
+          {% if analysis.urgency == 'CRITICAL' %}
+            <span class="urgency-badge urgency-badge-critical">
+              <span class="pulse-icon"></span> CRITICAL SEVERITY
+            </span>
+          {% elif analysis.urgency == 'HIGH' %}
+            <span class="urgency-badge urgency-badge-high">
+              <i class="bi bi-exclamation-triangle-fill"></i> HIGH URGENCY
+            </span>
+          {% else %}
+            <span class="urgency-badge urgency-badge-moderate">
+              <i class="bi bi-info-circle-fill"></i> ELEVATED ALERT
+            </span>
+          {% endif %}
+
+          <span class="category-badge">
+            <i class="bi bi-shield-shaded me-1"></i> {{ analysis.crisis_type }}
+          </span>
+
+          <span class="category-badge">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ detected_country }}
+          </span>
+
+          <span class="text-body-secondary ms-auto small">
+            <i class="bi bi-calendar3 me-1"></i> Published: <strong>{{ article.publishedAt }}</strong>
+          </span>
+        </div>
+
+        <!-- Article Headline -->
+        <h1 class="h2 fw-bold text-body-emphasis mb-3 lh-sm">{{ article.title }}</h1>
+        
+        <!-- Lead Executive Summary -->
+        <div class="p-3 mb-4 rounded-3 bg-body-tertiary border-start border-4 border-danger">
+          <p class="lead fs-6 text-body mb-0 lh-base">{{ analysis.cleaned_description }}</p>
+        </div>
+
+        <!-- In-Depth Crisis Matter / Field Report -->
+        <h5 class="fw-bold mb-3 d-flex align-items-center">
+          <i class="bi bi-file-earmark-text text-danger me-2"></i>
+          In-Depth Humanitarian Situation Report
+        </h5>
+        
+        <div class="crisis-full-report mb-4">
+          {% for para in analysis.full_report %}
+            <p class="mb-3 text-body-secondary lh-lg fs-6">{{ para | safe }}</p>
+          {% endfor %}
+        </div>
+
+        <!-- Executive Crisis Takeaways Box -->
+        <div class="card p-3 mb-4 rounded-3 bg-body-tertiary border-0">
+          <h6 class="fw-bold mb-3 d-flex align-items-center text-body">
+            <i class="bi bi-card-checklist text-danger me-2 fs-5"></i>
+            Executive Crisis Takeaways
+          </h6>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for point in analysis.takeaways %}
+              <li class="list-group-item px-0 py-2 bg-transparent border-0 d-flex align-items-start gap-2">
+                <i class="bi bi-check-circle-fill text-danger mt-1"></i>
+                <span class="small text-body lh-base">{{ point | safe }}</span>
+              </li>
+            {% endfor %}
           </ul>
-          <a class="lead" href="{{ article.url }}" target="_blank" style="text-decoration: None;color: indianred;">read more..</a>
-<!--        <p class="lead">{{ article.content }} <a href="{{ article.url }}" target="_blank" style="text-decoration: None;color: indianred;">read more..</a></p>-->
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start pt-2">
-          <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">
-              {% if country == "None" %}
-              <a class="nav-link" target="_blank" href="{{ article.link }}">Donate Now!</a>
-              {% else %}
-              <a class="nav-link" target="_blank" href="{{ article.link }}">Donate to {{ country }}!</a>
-              {% endif %}
-          </button>
+        </div>
+
+        <!-- 60-Second Background & Context Timeline -->
+        <div class="mb-4">
+          <h6 class="fw-bold mb-3 d-flex align-items-center text-body">
+            <i class="bi bi-clock-history text-danger me-2 fs-5"></i>
+            60-Second Context Timeline ("How We Got Here")
+          </h6>
+          <div class="crisis-timeline">
+            {% for step in analysis.timeline %}
+              <div class="timeline-milestone">
+                <h6 class="fw-bold mb-1 text-danger small">{{ step.phase }}</h6>
+                <p class="text-body-secondary small mb-0 lh-base">{{ step.detail }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Original Source Publisher Link -->
+        <div class="pt-3 border-top d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div>
+            <span class="fw-semibold small">Original Publisher Report:</span>
+            <p class="small text-body-secondary mb-0">Review unfiltered source coverage directly from the news provider.</p>
+          </div>
+          <a href="{{ article.url }}" target="_blank" class="btn btn-outline-danger btn-sm text-nowrap flex-shrink-0">
+            Original Source <i class="bi bi-box-arrow-up-right ms-1"></i>
+          </a>
         </div>
       </div>
     </div>
+
+    <!-- Right Sidebar: Image (Clean without titles), Map, Needs & Relief Hub -->
+    <div class="col-lg-4">
+      <!-- Article Picture (Just clean image without titles) -->
+      {% if article.urlToImage %}
+      <div class="overflow-hidden rounded-4 mb-4 shadow-sm">
+        <img src="{{ article.urlToImage }}" class="img-fluid w-100" style="height: 250px; object-fit: cover;" alt="{{ article.title }}" onerror="this.src='/static/assets/images/hero-active.jpg'">
+      </div>
+      {% endif %}
+
+      <!-- Interactive Focus Zone Mini-Map -->
+      <div class="card crisis-card p-3 mb-4 border-0 shadow-sm rounded-4">
+        <h6 class="fw-bold mb-2 d-flex align-items-center">
+          <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+          Crisis Focus Zone
+        </h6>
+        <div id="miniCrisisMap" class="crisis-mini-map-container mb-2 rounded-3 overflow-hidden"></div>
+        <div class="d-flex justify-content-between align-items-center small text-body-secondary">
+          <span>Region: <strong>{{ detected_country }}</strong></span>
+          <span class="badge bg-secondary-subtle text-secondary-emphasis">Lat: {{ coords[0] }}, Lng: {{ coords[1] }}</span>
+        </div>
+      </div>
+
+      <!-- Immediate Priority Needs -->
+      <div class="card crisis-card p-3 mb-4 border-0 shadow-sm rounded-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center">
+          <i class="bi bi-box-seam text-danger me-2"></i>
+          Immediate Priority Needs
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for need in analysis.immediate_needs %}
+            <span class="needs-pill">
+              {% if loop.index == 1 %}<i class="bi bi-bandaid text-danger"></i>
+              {% elif loop.index == 2 %}<i class="bi bi-droplet-fill text-primary"></i>
+              {% elif loop.index == 3 %}<i class="bi bi-basket2-fill text-warning"></i>
+              {% else %}<i class="bi bi-house-heart-fill text-success"></i>
+              {% endif %}
+              {{ need }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Verified Humanitarian Relief Hub -->
+      <div class="card crisis-card p-3 mb-4 border-0 shadow-sm rounded-4">
+        <h6 class="fw-bold mb-2 d-flex align-items-center">
+          <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+          Verified Relief Action Hub
+        </h6>
+        <p class="small text-body-secondary mb-3">
+          Deploy direct financial or medical assistance through verified emergency channels.
+        </p>
+
+        {% if country_relief_link %}
+        <a href="{{ country_relief_link }}" target="_blank" class="btn btn-danger w-100 fw-bold py-2 mb-3 shadow-sm">
+          <i class="bi bi-heart-fill me-1"></i> Donate to {{ detected_country }} Relief
+        </a>
+        {% endif %}
+
+        <h6 class="small text-uppercase text-body-secondary fw-bold mb-2">Accredited International Partners</h6>
+        <div class="d-flex flex-column gap-2">
+          {% for partner in relief_partners %}
+            <a href="{{ partner.url }}" target="_blank" class="partner-card">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check text-danger fs-5"></i>
+                <div>
+                  <div class="fw-semibold small">{{ partner.name }}</div>
+                  <div class="text-body-secondary" style="font-size: 0.75rem;">{{ partner.focus }}</div>
+                </div>
+              </div>
+              <i class="bi bi-box-arrow-up-right small text-body-secondary"></i>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Initialize Mini Map -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const lat = {{ coords[0] }};
+    const lng = {{ coords[1] }};
+    const countryName = "{{ detected_country }}";
+
+    if (window.L && document.getElementById('miniCrisisMap')) {
+      const miniMap = L.map('miniCrisisMap', {
+        center: [lat, lng],
+        zoom: 5,
+        zoomControl: false,
+        attributionControl: false,
+        dragging: true,
+        scrollWheelZoom: false
+      });
+
+      const isDark = localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-bs-theme') === 'dark';
+      const tileUrl = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+      L.tileLayer(tileUrl).addTo(miniMap);
+
+      const circle = L.circle([lat, lng], {
+        color: '#dc3545',
+        fillColor: '#dc3545',
+        fillOpacity: 0.25,
+        radius: 120000
+      }).addTo(miniMap);
+
+      L.marker([lat, lng])
+        .addTo(miniMap)
+        .bindPopup(`<strong>${countryName}</strong><br>Active Crisis Zone`);
+    }
+  });
+</script>
 
 {% endblock %}

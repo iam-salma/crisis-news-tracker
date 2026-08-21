@@ -8,6 +8,7 @@ __pycache__/
 env/
 venv/
 ENV/
+caid/
 
 # VSCode settings
 .vscode/
@@ -51,7 +52,6 @@ build/
 
 
 # test files
-test.py
-test2.py
 link.py
 dummy.py
+hidden_files/
