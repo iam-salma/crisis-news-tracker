@@ -286,9 +286,11 @@ async def insert_news_in_db(country: Optional[str] = None) -> None:
     articles = fetch_multi_source_news(country)
     try:
         with SessionLocal() as db:
-            rows_deleted = db.query(NewsArticle).delete()
-            db.commit()
-            logger.info("Cleared %d existing records from NewsArticle.", rows_deleted)
+            # Only perform a full table clear during global periodic refresh (country is None)
+            if not country:
+                rows_deleted = db.query(NewsArticle).delete()
+                db.commit()
+                logger.info("Cleared %d existing records for global refresh.", rows_deleted)
 
             db_articles = []
             for article in articles:
@@ -319,6 +321,6 @@ async def insert_news_in_db(country: Optional[str] = None) -> None:
                 db_articles.append(db_article)
 
             db.commit()
-            logger.info("Successfully persisted %d multi-source shuffled articles into database.", len(db_articles))
+            logger.info("Successfully persisted %d articles into database (filter=%s).", len(db_articles), country or "global")
     except Exception as e:
         logger.error("Error updating database in insert_news_in_db: %s", e)
