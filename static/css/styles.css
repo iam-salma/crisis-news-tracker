@@ -70,13 +70,12 @@
 }
 
 .carousel-item {
-    background-size: cover;
-    background-position: center 30%;
-    background-repeat: no-repeat;
-    height: 72vh;
-    min-height: 580px;
-    max-height: 740px;
-    position: relative;
+    background-size: cover !important;
+    background-position: center 30% !important;
+    background-repeat: no-repeat !important;
+    height: 75vh !important;
+    min-height: 620px !important;
+    position: relative !important;
 }
 
 .carousel-caption {

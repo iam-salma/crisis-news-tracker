@@ -14,7 +14,7 @@
     <!-- Carousel Items -->
     <div class="carousel-inner">
       {% for slide in carousel_slides or slides %}
-      <div class="carousel-item {% if loop.first %}active{% endif %}" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.92) 100%), url('{{ slide.image or slide.urlToImage or '/static/assets/images/hero-active.jpg' }}');">
+      <div class="carousel-item {% if loop.first %}active{% endif %}" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.94) 100%), url('{{ slide.image or slide.urlToImage or '/static/assets/images/hero-active.jpg' }}'); min-height: 620px; height: 75vh;">
         <div class="carousel-caption text-start px-3 px-sm-4 px-md-5 pb-4 pb-md-5 pt-5">
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Breaking Spotlight</span>
@@ -83,7 +83,6 @@
       <h3 class="h4 fw-bold mb-0">
         <i class="bi bi-newspaper text-danger me-2"></i>Latest Global Crisis Reports
       </h3>
-      <span class="text-body-secondary small">Live field updates across active crisis zones</span>
     </div>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 g-md-4 pt-1">
