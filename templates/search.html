@@ -64,7 +64,7 @@
                         {{ article.description or 'Active crisis monitoring and emergency relief operations underway.' }}
                     </p>
                     <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
-                        <a href="{{ url_for('news_detail', news_id=article.id, country=country) }}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                        <a href="{{ url_for('news_detail', news_id=article.id, country=country) }}" class="btn btn-sm btn-outline-danger fw-semibold px-3">
                             <i class="bi bi-card-text me-1"></i> Read Briefing
                         </a>
                         <small class="text-body-secondary"><i class="bi bi-calendar3 me-1"></i>{{ article.publishedAt }}</small>
@@ -79,7 +79,7 @@
         <i class="bi bi-search display-3 text-body-tertiary mb-3"></i>
         <h4>No articles found for "{{ country }}"</h4>
         <p class="text-body-secondary">Try searching for another country or check the interactive crisis map.</p>
-        <a href="/locate" class="btn btn-primary">Open Crisis Radar</a>
+        <a href="/locate" class="btn btn-danger">Open Crisis Map</a>
     </div>
     {% endif %}
 </div>

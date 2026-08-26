@@ -561,6 +561,14 @@
     padding: 2px;
 }
 
+[data-bs-theme=dark] .leaflet-tile {
+    filter: brightness(0.7) invert(100%) hue-rotate(180deg) contrast(90%);
+}
+
+[data-bs-theme=dark] .leaflet-container {
+    background-color: #121212 !important;
+}
+
 /* Aesthetic Humanitarian Corridor Marker Pin */
 .corridor-marker-pin {
     width: 28px;

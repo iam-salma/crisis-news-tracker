@@ -210,21 +210,26 @@
         scrollWheelZoom: false
       });
 
-      const isDark = localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-bs-theme') === 'dark';
-      const tileUrl = isDark
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(miniMap);
 
-      L.tileLayer(tileUrl).addTo(miniMap);
-
-      const circle = L.circle([lat, lng], {
+      L.circle([lat, lng], {
         color: '#dc3545',
         fillColor: '#dc3545',
-        fillOpacity: 0.25,
+        fillOpacity: 0.22,
         radius: 120000
       }).addTo(miniMap);
 
-      L.marker([lat, lng])
+      const pulseIcon = L.divIcon({
+        className: 'custom-pulse-marker',
+        html: `<div style="width: 14px; height: 14px; background: #dc3545; border: 2.5px solid #ffffff; border-radius: 50%; box-shadow: 0 0 10px rgba(220,53,69,0.8);"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      L.marker([lat, lng], { icon: pulseIcon })
         .addTo(miniMap)
         .bindPopup(`<strong>${countryName}</strong><br>Active Crisis Zone`);
     }
