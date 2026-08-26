@@ -73,8 +73,8 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    height: 58vh;
-    min-height: 420px;
+    height: 64vh;
+    min-height: 520px;
     position: relative;
 }
 
@@ -627,7 +627,7 @@ img {
 
 /* Responsive Headline Typography */
 .carousel-headline {
-    font-size: clamp(1.25rem, 3.8vw, 2.25rem);
+    font-size: clamp(1.4rem, 4.2vw, 2.5rem);
     line-height: 1.25;
 }
 
@@ -686,7 +686,7 @@ img {
 @media (max-width: 991.98px) {
     .carousel-item {
         height: auto;
-        min-height: 380px;
+        min-height: 440px;
     }
 
     .locate-map-container {
@@ -711,7 +711,7 @@ img {
 
 @media (max-width: 575.98px) {
     .carousel-item {
-        min-height: 340px;
+        min-height: 380px;
     }
 
     .carousel-caption {
