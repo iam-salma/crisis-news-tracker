@@ -134,11 +134,17 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
 
 async def get_donation_link(news: str = "", country: str = None) -> str:
     """Retrieves verified frontline donation URL matching country or news context."""
-    if country and country != "None" and country in donation_links:
-        return donation_links[country]
+    if country and country != "None":
+        c_clean = country.strip().title()
+        if c_clean in donation_links:
+            return donation_links[c_clean]
+        for c, link in donation_links.items():
+            if c.lower() == country.lower() or c.lower() in country.lower() or country.lower() in c.lower():
+                return link
 
+    news_lower = (news or "").lower()
     for c, link in donation_links.items():
-        if c.lower() in (news or "").lower():
+        if c.lower() in news_lower:
             return link
 
     return "https://www.redcross.org/donate/donation.html/"
