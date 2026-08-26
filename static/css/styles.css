@@ -71,11 +71,23 @@
 
 .carousel-item {
     background-size: cover;
-    background-position: center;
+    background-position: center 30%;
     background-repeat: no-repeat;
-    height: 64vh;
-    min-height: 520px;
+    height: 72vh;
+    min-height: 580px;
+    max-height: 740px;
     position: relative;
+}
+
+.carousel-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 3rem 2.5rem 3.5rem 2.5rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 28%, rgba(0, 0, 0, 0.95) 100%);
+    z-index: 10;
 }
 
 .text-shadow {
@@ -686,7 +698,11 @@ img {
 @media (max-width: 991.98px) {
     .carousel-item {
         height: auto;
-        min-height: 440px;
+        min-height: 520px;
+    }
+
+    .carousel-caption {
+        padding: 2.25rem 1.75rem 3rem 1.75rem !important;
     }
 
     .locate-map-container {
@@ -711,13 +727,13 @@ img {
 
 @media (max-width: 575.98px) {
     .carousel-item {
-        min-height: 380px;
+        min-height: 460px;
     }
 
     .carousel-caption {
-        left: 4% !important;
-        right: 4% !important;
-        padding-bottom: 1.25rem !important;
+        left: 0 !important;
+        right: 0 !important;
+        padding: 1.75rem 1rem 2.25rem 1rem !important;
     }
 
     .user-message, .bot-message {
