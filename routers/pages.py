@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from core.config import settings
 from core.database import get_db
 from models import NewsArticle
-from services.geo_service import detect_country_coords, detect_geo_entity
+from services.geo_service import detect_country_coords, detect_geo_entity, get_country_keywords
 from services.relief_service import donation_links, GLOBAL_RELIEF_PARTNERS, get_donation_link
 from services.analysis_service import analyze_crisis_article
 from services.audio_service import get_audio_cache_version, generate_audio_summary
@@ -21,11 +21,12 @@ templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    all_articles = db.query(NewsArticle).all()
+    # Order by ID descending so latest breaking news appears first at the top
+    all_articles = db.query(NewsArticle).order_by(NewsArticle.id.desc()).all()
 
     if not all_articles:
         await insert_news_in_db()
-        all_articles = db.query(NewsArticle).all()
+        all_articles = db.query(NewsArticle).order_by(NewsArticle.id.desc()).all()
 
     if all_articles:
         await generate_audio_summary(all_articles)
@@ -105,32 +106,34 @@ async def search_news(
     search_term = country.strip()
     geo_type, display_name, coords, target_countries = detect_geo_entity(search_term)
 
-    # Build search filters
-    search_filters = [
-        NewsArticle.title.ilike(f"%{search_term}%"),
-        NewsArticle.description.ilike(f"%{search_term}%")
-    ]
+    # Gather all associated city, state, and regional keywords
+    all_keywords = get_country_keywords(search_term)
     if display_name and display_name != "Global Crisis Region":
-        search_filters.append(NewsArticle.title.ilike(f"%{display_name}%"))
-        search_filters.append(NewsArticle.description.ilike(f"%{display_name}%"))
+        all_keywords.update(get_country_keywords(display_name))
+    all_keywords.update(target_countries)
+    all_keywords.add(search_term.lower())
 
-    for c_name in target_countries:
-        search_filters.append(NewsArticle.title.ilike(f"%{c_name}%"))
-        search_filters.append(NewsArticle.description.ilike(f"%{c_name}%"))
+    search_filters = []
+    for kw in all_keywords:
+        if len(kw) >= 2:
+            search_filters.append(NewsArticle.title.ilike(f"%{kw}%"))
+            search_filters.append(NewsArticle.description.ilike(f"%{kw}%"))
 
-    articles = db.query(NewsArticle).filter(or_(*search_filters)).all()
+    articles = db.query(NewsArticle).filter(or_(*search_filters)).order_by(NewsArticle.id.desc()).all()
 
-    if not articles:
+    if not articles or len(articles) < 2:
         await insert_news_in_db(country=search_term)
-        articles = db.query(NewsArticle).filter(or_(*search_filters)).all()
+        articles = db.query(NewsArticle).filter(or_(*search_filters)).order_by(NewsArticle.id.desc()).all()
+
+    c_label = display_name if display_name != "Global Crisis Region" else search_term.title()
+    verified_link = donation_links.get(c_label, donation_links.get(search_term.title(), "https://www.redcross.org/donate/donation.html/"))
+    hero_img = articles[0].urlToImage if articles and articles[0].urlToImage else "/static/assets/images/hero-active.jpg"
 
     # If still no articles from external feeds, synthesize an immediate verified field report
     if not articles:
-        c_label = display_name if display_name != "Global Crisis Region" else search_term.title()
-        verified_link = donation_links.get(c_label, "https://www.redcross.org/donate/donation.html/")
         synth_article = NewsArticle(
             title=f"Humanitarian Situation Assessment & Response: {c_label}",
-            description=f"Frontline humanitarian monitoring confirms active disaster relief and protection operations across {c_label}. Coordinated emergency response channels are mobilizing aid corridors.",
+            description=f"Frontline humanitarian monitoring confirms active disaster relief, flood and medical triage operations across {c_label}. Coordinated emergency response channels are mobilizing aid corridors.",
             content="",
             url=verified_link,
             link=verified_link,
@@ -144,7 +147,9 @@ async def search_news(
     return templates.TemplateResponse("search.html", {
         "request": request,
         "all_articles": articles,
-        "country": search_term.title()
+        "country": c_label,
+        "hero_image": hero_img,
+        "donation_link_hero": verified_link
     })
 
 

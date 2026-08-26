@@ -158,3 +158,23 @@ def detect_country_coords(text: str = "", default_country: str = None) -> Tuple[
     """Helper returning only (country_name, coords)"""
     _, name, coords, _ = detect_geo_entity(text, default_country)
     return (name, coords)
+
+
+def get_country_keywords(country_name: str) -> Set[str]:
+    """Returns set of all associated city, state, and alias keywords for a country or region."""
+    if not country_name:
+        return set()
+    c_lower = country_name.lower().strip()
+    keywords = {c_lower}
+    
+    # Add matching cities/districts
+    for city_key, city_data in CRISIS_CITY_COORDINATES.items():
+        if city_data["country"].lower() == c_lower or c_lower in city_data["country"].lower():
+            keywords.add(city_key.lower())
+            
+    # Add matching region countries
+    for reg_key, reg_info in CONTINENTS_REGIONS.items():
+        if reg_key == c_lower or reg_info["name"].lower() == c_lower:
+            keywords.update(reg_info["countries"])
+            
+    return keywords
