@@ -1,6 +1,6 @@
 import json
 import re
-from typing import Tuple, Set, List
+from typing import Tuple, Set, List, Dict, Any
 from core.config import settings
 from core.logging_config import logger
 
@@ -8,12 +8,47 @@ from core.logging_config import logger
 if settings.COUNTRY_COORDINATES_PATH.exists():
     try:
         with open(settings.COUNTRY_COORDINATES_PATH, "r", encoding="utf-8") as f:
-            country_coordinates_data = json.load(f)
+            country_coordinates_data: Dict[str, List[float]] = json.load(f)
     except Exception as e:
         logger.warning("Failed to load country coordinates from JSON: %s", e)
         country_coordinates_data = {}
 else:
     country_coordinates_data = {}
+
+# High-Resolution City & District Hotspots
+CRISIS_CITY_COORDINATES: Dict[str, Dict[str, Any]] = {
+    "al-fashir": {"country": "Sudan", "display": "Al-Fashir, North Darfur", "coords": [13.6294, 25.3549]},
+    "el fasher": {"country": "Sudan", "display": "Al-Fashir, North Darfur", "coords": [13.6294, 25.3549]},
+    "khartoum": {"country": "Sudan", "display": "Khartoum, Sudan", "coords": [15.5007, 32.5599]},
+    "port sudan": {"country": "Sudan", "display": "Port Sudan, Red Sea", "coords": [19.6158, 37.2164]},
+    "darfur": {"country": "Sudan", "display": "Darfur Region, Sudan", "coords": [13.0, 24.5]},
+    "rafah": {"country": "Palestine", "display": "Rafah, Southern Gaza", "coords": [31.2858, 34.2483]},
+    "khan younis": {"country": "Palestine", "display": "Khan Younis, Gaza", "coords": [31.3462, 34.3063]},
+    "gaza": {"country": "Palestine", "display": "Gaza City, Palestine", "coords": [31.5017, 34.4668]},
+    "west bank": {"country": "Palestine", "display": "West Bank, Palestine", "coords": [31.9466, 35.3027]},
+    "jenin": {"country": "Palestine", "display": "Jenin, West Bank", "coords": [32.4646, 35.2957]},
+    "goma": {"country": "Democratic Republic of the Congo", "display": "Goma, North Kivu", "coords": [-1.6792, 29.2228]},
+    "north kivu": {"country": "Democratic Republic of the Congo", "display": "North Kivu, DR Congo", "coords": [-0.5, 29.0]},
+    "bukavu": {"country": "Democratic Republic of the Congo", "display": "Bukavu, South Kivu", "coords": [-2.5083, 28.8608]},
+    "kyiv": {"country": "Ukraine", "display": "Kyiv, Ukraine", "coords": [50.4501, 30.5234]},
+    "kharkiv": {"country": "Ukraine", "display": "Kharkiv, Ukraine", "coords": [49.9935, 36.2304]},
+    "zaporizhzhia": {"country": "Ukraine", "display": "Zaporizhzhia, Ukraine", "coords": [47.8388, 35.1396]},
+    "odesa": {"country": "Ukraine", "display": "Odesa, Ukraine", "coords": [46.4825, 30.7233]},
+    "kherson": {"country": "Ukraine", "display": "Kherson, Ukraine", "coords": [46.6354, 32.6169]},
+    "port-au-prince": {"country": "Haiti", "display": "Port-au-Prince, Haiti", "coords": [18.5944, -72.3074]},
+    "cox's bazar": {"country": "Bangladesh", "display": "Cox's Bazar, Bangladesh", "coords": [21.4272, 92.0058]},
+    "sana'a": {"country": "Yemen", "display": "Sana'a, Yemen", "coords": [15.3694, 44.1910]},
+    "aden": {"country": "Yemen", "display": "Aden, Yemen", "coords": [12.7855, 45.0187]},
+    "hodeidah": {"country": "Yemen", "display": "Al Hudaydah, Yemen", "coords": [14.7978, 42.9545]},
+    "derna": {"country": "Libya", "display": "Derna, Libya", "coords": [32.7667, 22.6367]},
+    "beirut": {"country": "Lebanon", "display": "Beirut, Lebanon", "coords": [33.8938, 35.5018]},
+    "southern lebanon": {"country": "Lebanon", "display": "Southern Lebanon", "coords": [33.2721, 35.2033]},
+    "aleppo": {"country": "Syria", "display": "Aleppo, Syria", "coords": [36.2021, 37.1343]},
+    "idlib": {"country": "Syria", "display": "Idlib, Syria", "coords": [35.9306, 36.6339]},
+    "maiduguri": {"country": "Nigeria", "display": "Maiduguri, Borno State", "coords": [11.8333, 13.1500]},
+    "antakya": {"country": "Turkey", "display": "Antakya, Hatay", "coords": [36.2023, 36.1613]},
+    "marrakesh": {"country": "Morocco", "display": "Al Haouz / Marrakesh", "coords": [31.6295, -7.9811]}
+}
 
 CONTINENTS_REGIONS = {
     "africa": {
@@ -61,7 +96,8 @@ CONTINENTS_REGIONS = {
 
 def detect_geo_entity(text: str = "", default_country: str = None) -> Tuple[str, str, List[float], Set[str]]:
     """
-    NLP Entity & Geographic Coordinate Resolver.
+    High-Resolution NLP Entity & Geographic Coordinate Resolver.
+    Prioritizes city/district level tactical coordinates over country geometric centroids.
     Returns (geo_type, display_name, [lat, lng], set_of_target_country_names)
     """
     if not text and default_country:
@@ -72,17 +108,22 @@ def detect_geo_entity(text: str = "", default_country: str = None) -> Tuple[str,
 
     text_lower = text.lower()
 
-    # 1. Match continent / regional grouping
+    # 1. High-Resolution City / District Matching
+    for city_key, city_data in CRISIS_CITY_COORDINATES.items():
+        if re.search(r'\b' + re.escape(city_key) + r'\b', text_lower):
+            return ("city", city_data["display"], city_data["coords"], {city_data["country"].lower()})
+
+    # 2. Match continent / regional grouping
     for reg_key, reg_info in CONTINENTS_REGIONS.items():
         if re.search(r'\b' + re.escape(reg_key) + r'\b', text_lower):
             return ("region", reg_info["name"], reg_info["coords"], reg_info["countries"])
 
-    # 2. Match specific country name in text
+    # 3. Match specific country name in text
     for country, coords in country_coordinates_data.items():
         if re.search(r'\b' + re.escape(country.lower()) + r'\b', text_lower):
             return ("country", country, coords, {country.lower()})
 
-    # 3. Match from default country if provided
+    # 4. Match from default country if provided
     if default_country and default_country != "None":
         for entity, c_info in CONTINENTS_REGIONS.items():
             if default_country.lower() == entity:
@@ -91,7 +132,7 @@ def detect_geo_entity(text: str = "", default_country: str = None) -> Tuple[str,
             if default_country.lower() == entity.lower():
                 return ("country", entity, coords, {entity.lower()})
 
-    # 4. Fallback search
+    # 5. Fallback search
     for entity in list(CONTINENTS_REGIONS.keys()) + list(country_coordinates_data.keys()):
         if entity.lower() in text_lower:
             if entity in CONTINENTS_REGIONS:

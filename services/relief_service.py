@@ -52,7 +52,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Active Safe Passage",
         "status_type": "active",
         "managed_by": "UN OCHA & WFP",
+        "verified_date": "Live Monitoring",
         "focus": "Food Rations & Medical Triage",
+        "disclaimer": "Situational tracking only. Consult UN OCHA security advisories prior to tactical movement.",
         "coordinates": [[19.6158, 37.2164], [15.5007, 32.5599], [13.6294, 25.3549]]
     },
     {
@@ -62,7 +64,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "High Friction / Priority Aid",
         "status_type": "warning",
         "managed_by": "UNRWA & Red Crescent",
+        "verified_date": "Live Monitoring",
         "focus": "Emergency Trauma Supplies & Fuel",
+        "disclaimer": "Extreme access volatility. Coordinated via UN Special Coordinator & Red Crescent.",
         "coordinates": [[31.2858, 34.2483], [31.5017, 34.4668]]
     },
     {
@@ -72,7 +76,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Continuous Logistics Pipeline",
         "status_type": "active",
         "managed_by": "UNHCR & European Civil Protection",
+        "verified_date": "Live Monitoring",
         "focus": "Power Generators, Winter Gear & Trauma Kits",
+        "disclaimer": "Continuous humanitarian supply line operating through EU civil protection hubs.",
         "coordinates": [[50.0412, 21.9991], [49.8397, 24.0297], [50.4501, 30.5234]]
     },
     {
@@ -82,7 +88,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Severe Access Constraint",
         "status_type": "critical",
         "managed_by": "Monusco & MSF",
+        "verified_date": "Live Monitoring",
         "focus": "Cholera Response & Emergency Tarpaulins",
+        "disclaimer": "Active armed clashes in perimeter. Monitored by UN Logistics Cluster.",
         "coordinates": [[-1.6792, 29.2228], [-1.2833, 29.5000]]
     },
     {
@@ -92,7 +100,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Monitored De-escalation Route",
         "status_type": "warning",
         "managed_by": "ICRC & WFP",
+        "verified_date": "Live Monitoring",
         "focus": "Clean Water Logistics & Child Nutrition",
+        "disclaimer": "De-confliction clearance required via ICRC logistics cell.",
         "coordinates": [[12.7855, 45.0187], [13.5795, 44.0209]]
     },
     {
@@ -102,7 +112,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Operational Monsoonal Response",
         "status_type": "active",
         "managed_by": "IOM & Red Crescent",
+        "verified_date": "Live Monitoring",
         "focus": "Camp Fortification, Water & Sanitation",
+        "disclaimer": "Monsoon flood mitigation protocol active across refugee mega-camps.",
         "coordinates": [[21.4272, 92.0058], [21.1969, 92.1583]]
     },
     {
@@ -112,7 +124,9 @@ HUMANITARIAN_CORRIDORS: List[Dict[str, Any]] = [
         "status": "Extreme Volatility & Escorted Convoys",
         "status_type": "critical",
         "managed_by": "UN Integrated Office & PAHO",
+        "verified_date": "Live Monitoring",
         "focus": "Emergency Surgery & Potable Water",
+        "disclaimer": "Urban corridor subject to armed gang checkpoints. Armored humanitarian escorts required.",
         "coordinates": [[18.5944, -72.3074], [18.5392, -72.3364]]
     }
 ]

@@ -41,6 +41,65 @@ def fetch_news_from_api(country: Optional[str] = None) -> List[Dict[str, Any]]:
         return []
 
 
+def fetch_gdacs_alerts() -> List[Dict[str, Any]]:
+    """Fetches Primary Disaster Telemetry from GDACS (Global Disaster Alert & Coordination System)."""
+    headers = {"User-Agent": "Mozilla/5.0 CrisisAid/2.5"}
+    url = "https://www.gdacs.org/xml/rss.xml"
+    articles = []
+    try:
+        resp = requests.get(url, headers=headers, timeout=6)
+        if resp.ok:
+            root = ET.fromstring(resp.content)
+            for item in root.findall("./channel/item")[:15]:
+                t = item.find("title").text if item.find("title") is not None else ""
+                if not t:
+                    continue
+                desc_el = item.find("description")
+                raw_desc = desc_el.text if desc_el is not None else ""
+                clean_desc = re.sub(r"<[^>]+>", "", raw_desc).strip()
+                link = item.find("link").text if item.find("link") is not None else "https://www.gdacs.org"
+
+                articles.append({
+                    "title": t,
+                    "description": clean_desc[:300] if clean_desc else "Active disaster telemetry report from GDACS.",
+                    "url": link,
+                    "urlToImage": "/static/assets/images/hero-active.jpg",
+                    "publishedAt": datetime.now().strftime("%d-%m-%Y"),
+                    "source": "GDACS Disaster Telemetry"
+                })
+    except Exception as e:
+        logger.warning("GDACS feed ingestion notice: %s", e)
+    return articles
+
+
+def fetch_usgs_earthquakes() -> List[Dict[str, Any]]:
+    """Fetches Primary Seismic Telemetry from USGS Significant Earthquake GeoJSON API."""
+    url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson"
+    articles = []
+    try:
+        resp = requests.get(url, timeout=6)
+        if resp.ok:
+            data = resp.json()
+            for feat in data.get("features", [])[:10]:
+                props = feat.get("properties", {})
+                title = props.get("title", "")
+                url_link = props.get("url", "https://earthquake.usgs.gov")
+                mag = props.get("mag", "")
+                place = props.get("place", "")
+
+                articles.append({
+                    "title": f"Magnitude {mag} Earthquake Alert: {place}",
+                    "description": f"Seismic alert recorded at {place}. Primary seismic sensor monitoring active through USGS.",
+                    "url": url_link,
+                    "urlToImage": "/static/assets/images/hero-active.jpg",
+                    "publishedAt": datetime.now().strftime("%d-%m-%Y"),
+                    "source": "USGS Seismic Network"
+                })
+    except Exception as e:
+        logger.warning("USGS Earthquake feed notice: %s", e)
+    return articles
+
+
 def fetch_un_humanitarian_rss() -> List[Dict[str, Any]]:
     """Fetches verified emergency reports from UN OCHA & UN News RSS feeds."""
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CrisisAid/2.5"}
@@ -92,23 +151,42 @@ def fetch_un_humanitarian_rss() -> List[Dict[str, Any]]:
 
 
 def fetch_multi_source_news(country: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Aggregates and deduplicates reports across NewsAPI and UN Humanitarian feeds."""
+    """
+    Multi-Tier Aggregator: Ingests Primary Disaster Telemetry (GDACS, USGS)
+    alongside UN OCHA RSS feeds and NewsAPI with cross-source deduplication.
+    """
     all_articles = []
     seen_titles = set()
 
-    # 1. Fetch from NewsAPI
+    # 1. Primary Disaster Telemetry (GDACS)
     try:
-        api_articles = fetch_news_from_api(country)
-        for a in api_articles:
+        gdacs_events = fetch_gdacs_alerts()
+        for a in gdacs_events:
+            if country and country.lower() not in a["title"].lower():
+                continue
             t = a.get("title", "")
             norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
             if norm_t and norm_t not in seen_titles:
                 seen_titles.add(norm_t)
                 all_articles.append(a)
     except Exception as e:
-        logger.warning("NewsAPI fetch error: %s", e)
+        logger.warning("GDACS aggregator notice: %s", e)
 
-    # 2. Supplement with UN Humanitarian RSS feeds
+    # 2. Primary Seismic Telemetry (USGS)
+    try:
+        usgs_events = fetch_usgs_earthquakes()
+        for a in usgs_events:
+            if country and country.lower() not in a["title"].lower():
+                continue
+            t = a.get("title", "")
+            norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
+            if norm_t and norm_t not in seen_titles:
+                seen_titles.add(norm_t)
+                all_articles.append(a)
+    except Exception as e:
+        logger.warning("USGS aggregator notice: %s", e)
+
+    # 3. UN OCHA / UN News RSS feeds
     try:
         un_articles = fetch_un_humanitarian_rss()
         for a in un_articles:
@@ -123,6 +201,18 @@ def fetch_multi_source_news(country: Optional[str] = None) -> List[Dict[str, Any
                 all_articles.append(a)
     except Exception as e:
         logger.warning("UN RSS supplement error: %s", e)
+
+    # 4. NewsAPI Coverage
+    try:
+        api_articles = fetch_news_from_api(country)
+        for a in api_articles:
+            t = a.get("title", "")
+            norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
+            if norm_t and norm_t not in seen_titles:
+                seen_titles.add(norm_t)
+                all_articles.append(a)
+    except Exception as e:
+        logger.warning("NewsAPI fetch error: %s", e)
 
     return all_articles
 
@@ -165,6 +255,6 @@ async def insert_news_in_db(country: Optional[str] = None) -> None:
                 db_articles.append(db_article)
 
             db.commit()
-            logger.info("Successfully persisted %d fresh articles into database.", len(db_articles))
+            logger.info("Successfully persisted %d multi-source articles into database.", len(db_articles))
     except Exception as e:
         logger.error("Error updating database in insert_news_in_db: %s", e)
