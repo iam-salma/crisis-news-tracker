@@ -325,6 +325,21 @@ def detect_country_coords(text: str = "", default_country: str = None) -> Tuple[
     return (name, coords)
 
 
+def is_valid_geo_entity(text: str) -> Tuple[bool, str, str, List[float], Set[str]]:
+    """
+    Validates strictly whether a given query text matches a valid Country, City, or Region.
+    Returns (is_valid, geo_type, display_name, coords, target_countries)
+    """
+    if not text or not text.strip():
+        return False, "unknown", "", [0.0, 0.0], set()
+    
+    geo_type, display_name, coords, target_countries = detect_geo_entity(text.strip())
+    if geo_type in ("country", "city", "region"):
+        return True, geo_type, display_name, coords, target_countries
+    
+    return False, "unknown", "", [0.0, 0.0], set()
+
+
 def get_country_keywords(country_name: str) -> Set[str]:
     """Returns set of all associated city, state, and alias keywords for a country or region."""
     if not country_name:

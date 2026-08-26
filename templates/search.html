@@ -10,6 +10,42 @@
         </ol>
     </nav>
 
+    {% if is_invalid_geo %}
+    <!-- Invalid Geographic Entity Notice -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 my-4 bg-body-tertiary text-center">
+        <div class="mb-3">
+            <span class="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill">
+                <i class="bi bi-geo-alt-fill me-1"></i> Geographic Disaster Zone Search Only
+            </span>
+        </div>
+        <h2 class="h3 fw-bold mb-2">"{{ country }}" is not a recognized Country, City, or Region</h2>
+        <p class="text-body-secondary mb-4 mx-auto" style="max-width: 580px;">
+            CrisisAid intelligence is strictly organized by geographic zones. Please search for a specific country (e.g. <em>Sudan, India, Ukraine</em>), city/hotspot (e.g. <em>Gaza, Al-Fashir, Kerala, Kyiv</em>), or region (e.g. <em>Middle East, Africa</em>).
+        </p>
+
+        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3">Popular Geographic Crisis Corridors</h6>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4 mx-auto" style="max-width: 720px;">
+            <a href="/search?country=Sudan" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Sudan</a>
+            <a href="/search?country=India" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>India</a>
+            <a href="/search?country=Palestine" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Palestine (Gaza)</a>
+            <a href="/search?country=Ukraine" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Ukraine</a>
+            <a href="/search?country=Haiti" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Haiti</a>
+            <a href="/search?country=Democratic+Republic+of+the+Congo" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>DR Congo</a>
+            <a href="/search?country=Yemen" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Yemen</a>
+            <a href="/search?country=Syria" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-geo-alt text-danger me-1"></i>Syria</a>
+            <a href="/search?country=Middle+East" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-compass text-danger me-1"></i>Middle East</a>
+            <a href="/search?country=Africa" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-compass text-danger me-1"></i>Africa</a>
+            <a href="/search?country=Sahel" class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i class="bi bi-compass text-danger me-1"></i>Sahel</a>
+        </div>
+
+        <div>
+            <a href="/locate" class="btn btn-danger px-4 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-map me-1"></i> Open Interactive Crisis Map
+            </a>
+        </div>
+    </div>
+    {% else %}
+
     <!-- Country Hero Banner -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-body-tertiary">
         <div class="row g-0 align-items-center">
@@ -81,6 +117,8 @@
         <p class="text-body-secondary">Try searching for another country or check the interactive crisis map.</p>
         <a href="/locate" class="btn btn-danger">Open Crisis Map</a>
     </div>
+    {% endif %}
+
     {% endif %}
 </div>
 

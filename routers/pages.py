@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from core.config import settings
 from core.database import get_db
 from models import NewsArticle
-from services.geo_service import detect_country_coords, detect_geo_entity, get_country_keywords
+from services.geo_service import detect_country_coords, detect_geo_entity, get_country_keywords, is_valid_geo_entity
 from services.relief_service import donation_links, GLOBAL_RELIEF_PARTNERS, get_donation_link
 from services.analysis_service import analyze_crisis_article
 from services.audio_service import get_audio_cache_version, generate_audio_summary
@@ -97,14 +97,26 @@ async def chat(request: Request):
 @router.get("/search", response_class=HTMLResponse)
 async def search_news(
     request: Request,
-    country: str = Query(None, description="Country name to filter by"),
+    country: str = Query(None, description="Country, city or region name to filter by"),
     db: Session = Depends(get_db)
 ):
     if not country or country.strip() == "":
         return RedirectResponse(url="/", status_code=303)
 
-    search_term = country.strip()
-    geo_type, display_name, coords, target_countries = detect_geo_entity(search_term)
+    search_term = country.strip()[:80]
+    
+    # Strictly validate against Countries, Cities/Hotspots, and Regions
+    is_valid, geo_type, display_name, coords, target_countries = is_valid_geo_entity(search_term)
+
+    if not is_valid:
+        return templates.TemplateResponse("search.html", {
+            "request": request,
+            "all_articles": [],
+            "country": search_term,
+            "is_invalid_geo": True,
+            "hero_image": "/static/assets/images/hero-active.jpg",
+            "donation_link_hero": "https://www.redcross.org/donate/donation.html/"
+        })
 
     # Gather all associated city, state, and regional keywords
     all_keywords = get_country_keywords(search_term)
@@ -148,6 +160,7 @@ async def search_news(
         "request": request,
         "all_articles": articles,
         "country": c_label,
+        "is_invalid_geo": False,
         "hero_image": hero_img,
         "donation_link_hero": verified_link
     })
