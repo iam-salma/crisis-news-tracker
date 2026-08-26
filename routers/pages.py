@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -38,11 +39,15 @@ async def home(request: Request, db: Session = Depends(get_db)):
         and len(a.urlToImage) > 15
     ]
 
+    # Randomly shuffle the pool of photo articles for dynamic carousel spotlights
+    shuffled_photo_pool = list(photo_articles)
+    random.shuffle(shuffled_photo_pool)
+
     slides = []
     seen_countries = set()
-    for article in photo_articles:
+    for article in shuffled_photo_pool:
         country_name, coords = detect_country_coords(f"{article.title} {article.description or ''}")
-        if country_name in seen_countries and len(photo_articles) > 5:
+        if country_name in seen_countries and len(shuffled_photo_pool) > 6:
             continue
         donate_url = donation_links.get(country_name, article.link or "https://www.redcross.org/donate/donation.html/")
         img_url = article.urlToImage
