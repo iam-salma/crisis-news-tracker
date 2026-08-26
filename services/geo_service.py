@@ -47,7 +47,18 @@ CRISIS_CITY_COORDINATES: Dict[str, Dict[str, Any]] = {
     "idlib": {"country": "Syria", "display": "Idlib, Syria", "coords": [35.9306, 36.6339]},
     "maiduguri": {"country": "Nigeria", "display": "Maiduguri, Borno State", "coords": [11.8333, 13.1500]},
     "antakya": {"country": "Turkey", "display": "Antakya, Hatay", "coords": [36.2023, 36.1613]},
-    "marrakesh": {"country": "Morocco", "display": "Al Haouz / Marrakesh", "coords": [31.6295, -7.9811]}
+    "marrakesh": {"country": "Morocco", "display": "Al Haouz / Marrakesh", "coords": [31.6295, -7.9811]},
+    "kerala": {"country": "India", "display": "Kerala, India", "coords": [10.8505, 76.2711]},
+    "wayanad": {"country": "India", "display": "Wayanad, Kerala", "coords": [11.6854, 76.1320]},
+    "assam": {"country": "India", "display": "Assam Flood Corridor", "coords": [26.2006, 92.9376]},
+    "uttarakhand": {"country": "India", "display": "Uttarakhand, Himalayas", "coords": [30.0668, 79.0193]},
+    "himachal": {"country": "India", "display": "Himachal Pradesh, India", "coords": [31.1048, 77.1734]},
+    "odisha": {"country": "India", "display": "Odisha Coastal Zone", "coords": [20.9517, 85.0985]},
+    "new delhi": {"country": "India", "display": "New Delhi, India", "coords": [28.6139, 77.2090]},
+    "delhi": {"country": "India", "display": "Delhi, India", "coords": [28.6139, 77.2090]},
+    "mumbai": {"country": "India", "display": "Mumbai, Maharashtra", "coords": [19.0760, 72.8777]},
+    "bihar": {"country": "India", "display": "Bihar Flood Basin", "coords": [25.0961, 85.3131]},
+    "manipur": {"country": "India", "display": "Manipur, India", "coords": [24.6637, 93.9063]}
 }
 
 CONTINENTS_REGIONS = {

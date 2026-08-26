@@ -62,13 +62,18 @@ def fetch_news_from_api(country: Optional[str] = None) -> List[Dict[str, Any]]:
     if not settings.NEWS_API_KEY or not settings.NEWS_API_URL:
         return []
 
+    if country:
+        query_str = f"({country} AND (crisis OR disaster OR flood OR earthquake OR cyclone OR emergency OR relief OR aid OR landslide OR drought OR heatwave OR evacuation OR humanitarian))"
+    else:
+        query_str = "humanitarian crisis OR disaster relief OR emergency aid OR earthquake OR flood OR armed conflict"
+
     params = {
         "apiKey": settings.NEWS_API_KEY,
-        "q": f"({country} AND (humanitarian+crisis -political+crisis -financial+crisis -president -movie -twitter))"
-            if country else "humanitarian+crisis -political+crisis -financial+crisis -human+rights -president -movie -TV -twitter",
-        "searchln": "title,description,content",
+        "q": query_str,
+        "searchIn": "title,description",
         "excludeDomains": "lifesciencesworld.com,psychologytoday.com,smallwarsjournal.com,leicarumors.com,"
-                        "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com,designboom.com,gizmodo.com",
+                        "abcnews.go.com,sf.funcheap.com,fark.com,nypost.com,archdaily.com,vulture.com,designboom.com,gizmodo.com,"
+                        "etmarkets.com,moneycontrol.com,espncricinfo.com,cricbuzz.com,bollywoodlife.com",
         "language": "en",
     }
     try:
