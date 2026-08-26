@@ -71,10 +71,11 @@
 
 .carousel-item {
     background-size: cover !important;
-    background-position: center 30% !important;
+    background-position: center 25% !important;
     background-repeat: no-repeat !important;
-    height: 75vh !important;
-    min-height: 620px !important;
+    height: 46vh !important;
+    min-height: 380px !important;
+    max-height: 440px !important;
     position: relative !important;
 }
 
@@ -84,8 +85,8 @@
     left: 0;
     right: 0;
     width: 100%;
-    padding: 3rem 2.5rem 3.5rem 2.5rem;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 28%, rgba(0, 0, 0, 0.95) 100%);
+    padding: 1.5rem 2rem 2.25rem 2rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 25%, rgba(0, 0, 0, 0.92) 100%);
     z-index: 10;
 }
 
@@ -696,12 +697,13 @@ img {
 /* Responsive Screen Breakpoints */
 @media (max-width: 991.98px) {
     .carousel-item {
-        height: auto;
-        min-height: 520px;
+        height: auto !important;
+        min-height: 350px !important;
+        max-height: 400px !important;
     }
 
     .carousel-caption {
-        padding: 2.25rem 1.75rem 3rem 1.75rem !important;
+        padding: 1.25rem 1.5rem 2rem 1.5rem !important;
     }
 
     .locate-map-container {
@@ -726,13 +728,13 @@ img {
 
 @media (max-width: 575.98px) {
     .carousel-item {
-        min-height: 460px;
+        min-height: 310px !important;
     }
 
     .carousel-caption {
         left: 0 !important;
         right: 0 !important;
-        padding: 1.75rem 1rem 2.25rem 1rem !important;
+        padding: 1rem 0.85rem 1.5rem 0.85rem !important;
     }
 
     .user-message, .bot-message {
