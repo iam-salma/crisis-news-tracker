@@ -1,4 +1,5 @@
 import re
+import random
 import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -9,6 +10,51 @@ from core.config import settings
 from core.database import SessionLocal
 from core.logging_config import logger
 from models import NewsArticle
+
+# High-Resolution Contextual Crisis Photography for Telemetry Alerts
+CRISIS_TELEMETRY_PHOTOS = {
+    "earthquake": [
+        "https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=900&auto=format&fit=crop&q=75",
+        "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=900&auto=format&fit=crop&q=75"
+    ],
+    "cyclone": [
+        "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=900&auto=format&fit=crop&q=75",
+        "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=900&auto=format&fit=crop&q=75"
+    ],
+    "flood": [
+        "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=900&auto=format&fit=crop&q=75",
+        "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=900&auto=format&fit=crop&q=75"
+    ],
+    "fire": [
+        "https://images.unsplash.com/photo-1602980085566-4c6575724c4c?w=900&auto=format&fit=crop&q=75"
+    ],
+    "conflict": [
+        "https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=900&auto=format&fit=crop&q=75",
+        "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&auto=format&fit=crop&q=75"
+    ],
+    "general": [
+        "/static/assets/images/hero-active.jpg",
+        "/static/assets/images/hero1.jpg",
+        "/static/assets/images/hero2.jpg",
+        "/static/assets/images/hero3.jpg"
+    ]
+}
+
+
+def get_contextual_photo(text: str) -> str:
+    """Assigns high-resolution contextual photo URL based on crisis keywords."""
+    text_l = (text or "").lower()
+    if any(w in text_l for w in ["earthquake", "quake", "seismic", "tremor"]):
+        return random.choice(CRISIS_TELEMETRY_PHOTOS["earthquake"])
+    elif any(w in text_l for w in ["cyclone", "hurricane", "typhoon", "storm", "tropical"]):
+        return random.choice(CRISIS_TELEMETRY_PHOTOS["cyclone"])
+    elif any(w in text_l for w in ["flood", "submerged", "rainfall", "inundation"]):
+        return random.choice(CRISIS_TELEMETRY_PHOTOS["flood"])
+    elif any(w in text_l for w in ["fire", "wildfire", "forest"]):
+        return random.choice(CRISIS_TELEMETRY_PHOTOS["fire"])
+    elif any(w in text_l for w in ["war", "strike", "attack", "refugee", "displaced", "clash", "bomb"]):
+        return random.choice(CRISIS_TELEMETRY_PHOTOS["conflict"])
+    return random.choice(CRISIS_TELEMETRY_PHOTOS["general"])
 
 
 def fetch_news_from_api(country: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -50,7 +96,7 @@ def fetch_gdacs_alerts() -> List[Dict[str, Any]]:
         resp = requests.get(url, headers=headers, timeout=6)
         if resp.ok:
             root = ET.fromstring(resp.content)
-            for item in root.findall("./channel/item")[:15]:
+            for item in root.findall("./channel/item")[:12]:
                 t = item.find("title").text if item.find("title") is not None else ""
                 if not t:
                     continue
@@ -58,12 +104,13 @@ def fetch_gdacs_alerts() -> List[Dict[str, Any]]:
                 raw_desc = desc_el.text if desc_el is not None else ""
                 clean_desc = re.sub(r"<[^>]+>", "", raw_desc).strip()
                 link = item.find("link").text if item.find("link") is not None else "https://www.gdacs.org"
+                photo = get_contextual_photo(f"{t} {clean_desc}")
 
                 articles.append({
                     "title": t,
                     "description": clean_desc[:300] if clean_desc else "Active disaster telemetry report from GDACS.",
                     "url": link,
-                    "urlToImage": "/static/assets/images/hero-active.jpg",
+                    "urlToImage": photo,
                     "publishedAt": datetime.now().strftime("%d-%m-%Y"),
                     "source": "GDACS Disaster Telemetry"
                 })
@@ -80,18 +127,19 @@ def fetch_usgs_earthquakes() -> List[Dict[str, Any]]:
         resp = requests.get(url, timeout=6)
         if resp.ok:
             data = resp.json()
-            for feat in data.get("features", [])[:10]:
+            for feat in data.get("features", [])[:8]:
                 props = feat.get("properties", {})
                 title = props.get("title", "")
                 url_link = props.get("url", "https://earthquake.usgs.gov")
                 mag = props.get("mag", "")
                 place = props.get("place", "")
+                photo = get_contextual_photo("earthquake seismic")
 
                 articles.append({
                     "title": f"Magnitude {mag} Earthquake Alert: {place}",
-                    "description": f"Seismic alert recorded at {place}. Primary seismic sensor monitoring active through USGS.",
+                    "description": f"Significant seismic event detected at {place}. Continuous monitoring through USGS Seismology.",
                     "url": url_link,
-                    "urlToImage": "/static/assets/images/hero-active.jpg",
+                    "urlToImage": photo,
                     "publishedAt": datetime.now().strftime("%d-%m-%Y"),
                     "source": "USGS Seismic Network"
                 })
@@ -128,6 +176,8 @@ def fetch_un_humanitarian_rss() -> List[Dict[str, Any]]:
                     link = item.find("link").text if item.find("link") is not None else ""
                     enclosure = item.find("enclosure")
                     img_url = enclosure.get("url") if enclosure is not None else ""
+                    if not img_url:
+                        img_url = get_contextual_photo(f"{t} {clean_desc}")
 
                     pub_date_str = item.find("pubDate").text if item.find("pubDate") is not None else ""
                     try:
@@ -140,7 +190,7 @@ def fetch_un_humanitarian_rss() -> List[Dict[str, Any]]:
                         "title": t,
                         "description": clean_desc[:280],
                         "url": link,
-                        "urlToImage": img_url or "/static/assets/images/hero-active.jpg",
+                        "urlToImage": img_url,
                         "publishedAt": formatted_date,
                         "source": "UN OCHA / UN News"
                     })
@@ -153,43 +203,29 @@ def fetch_un_humanitarian_rss() -> List[Dict[str, Any]]:
 def fetch_multi_source_news(country: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Multi-Tier Aggregator: Ingests Primary Disaster Telemetry (GDACS, USGS)
-    alongside UN OCHA RSS feeds and NewsAPI with cross-source deduplication.
+    alongside UN OCHA RSS feeds and NewsAPI with cross-source deduplication and dynamic shuffling.
     """
-    all_articles = []
+    newsapi_articles = []
+    un_articles = []
+    telemetry_articles = []
     seen_titles = set()
 
-    # 1. Primary Disaster Telemetry (GDACS)
+    # 1. NewsAPI Coverage (Rich Photography)
     try:
-        gdacs_events = fetch_gdacs_alerts()
-        for a in gdacs_events:
-            if country and country.lower() not in a["title"].lower():
-                continue
+        raw_api = fetch_news_from_api(country)
+        for a in raw_api:
             t = a.get("title", "")
             norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
             if norm_t and norm_t not in seen_titles:
                 seen_titles.add(norm_t)
-                all_articles.append(a)
+                newsapi_articles.append(a)
     except Exception as e:
-        logger.warning("GDACS aggregator notice: %s", e)
+        logger.warning("NewsAPI fetch error: %s", e)
 
-    # 2. Primary Seismic Telemetry (USGS)
+    # 2. UN OCHA / UN News RSS feeds
     try:
-        usgs_events = fetch_usgs_earthquakes()
-        for a in usgs_events:
-            if country and country.lower() not in a["title"].lower():
-                continue
-            t = a.get("title", "")
-            norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
-            if norm_t and norm_t not in seen_titles:
-                seen_titles.add(norm_t)
-                all_articles.append(a)
-    except Exception as e:
-        logger.warning("USGS aggregator notice: %s", e)
-
-    # 3. UN OCHA / UN News RSS feeds
-    try:
-        un_articles = fetch_un_humanitarian_rss()
-        for a in un_articles:
+        raw_un = fetch_un_humanitarian_rss()
+        for a in raw_un:
             if country:
                 c_lower = country.lower()
                 if c_lower not in a["title"].lower() and c_lower not in a["description"].lower():
@@ -198,23 +234,51 @@ def fetch_multi_source_news(country: Optional[str] = None) -> List[Dict[str, Any
             norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
             if norm_t and norm_t not in seen_titles:
                 seen_titles.add(norm_t)
-                all_articles.append(a)
+                un_articles.append(a)
     except Exception as e:
         logger.warning("UN RSS supplement error: %s", e)
 
-    # 4. NewsAPI Coverage
+    # 3. Primary Disaster Telemetry (GDACS + USGS)
     try:
-        api_articles = fetch_news_from_api(country)
-        for a in api_articles:
+        raw_gdacs = fetch_gdacs_alerts()
+        for a in raw_gdacs:
+            if country and country.lower() not in a["title"].lower():
+                continue
             t = a.get("title", "")
             norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
             if norm_t and norm_t not in seen_titles:
                 seen_titles.add(norm_t)
-                all_articles.append(a)
-    except Exception as e:
-        logger.warning("NewsAPI fetch error: %s", e)
+                telemetry_articles.append(a)
 
-    return all_articles
+        raw_usgs = fetch_usgs_earthquakes()
+        for a in raw_usgs:
+            if country and country.lower() not in a["title"].lower():
+                continue
+            t = a.get("title", "")
+            norm_t = re.sub(r"[^a-zA-Z0-9]", "", t.lower())
+            if norm_t and norm_t not in seen_titles:
+                seen_titles.add(norm_t)
+                telemetry_articles.append(a)
+    except Exception as e:
+        logger.warning("Telemetry aggregator notice: %s", e)
+
+    # Shuffle each list to vary coverage
+    random.shuffle(newsapi_articles)
+    random.shuffle(un_articles)
+    random.shuffle(telemetry_articles)
+
+    # Interleave multi-source articles: NewsAPI (rich photo), UN OCHA, Telemetry
+    interleaved = []
+    max_len = max(len(newsapi_articles), len(un_articles), len(telemetry_articles), 1)
+    for i in range(max_len):
+        if i < len(newsapi_articles):
+            interleaved.append(newsapi_articles[i])
+        if i < len(un_articles):
+            interleaved.append(un_articles[i])
+        if i < len(telemetry_articles):
+            interleaved.append(telemetry_articles[i])
+
+    return interleaved
 
 
 async def insert_news_in_db(country: Optional[str] = None) -> None:
@@ -248,13 +312,13 @@ async def insert_news_in_db(country: Optional[str] = None) -> None:
                     content="",
                     url=article.get("url"),
                     link="",
-                    urlToImage=article.get("urlToImage"),
+                    urlToImage=article.get("urlToImage") or "/static/assets/images/hero-active.jpg",
                     publishedAt=formatted_pub
                 )
                 db.add(db_article)
                 db_articles.append(db_article)
 
             db.commit()
-            logger.info("Successfully persisted %d multi-source articles into database.", len(db_articles))
+            logger.info("Successfully persisted %d multi-source shuffled articles into database.", len(db_articles))
     except Exception as e:
         logger.error("Error updating database in insert_news_in_db: %s", e)

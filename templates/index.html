@@ -6,15 +6,15 @@
   <div id="responsiveCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel" data-bs-interval="6000">
     <!-- Indicators -->
     <div class="carousel-indicators">
-      {% for slide in carousel_slides %}
+      {% for slide in carousel_slides or slides %}
         <button type="button" data-bs-target="#responsiveCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% else %}false{% endif %}" aria-label="Slide {{ loop.index }}"></button>
       {% endfor %}
     </div>
 
     <!-- Carousel Items -->
     <div class="carousel-inner">
-      {% for slide in carousel_slides %}
-      <div class="carousel-item {% if loop.first %}active{% endif %}" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.88) 100%), url('{{ slide.image }}');">
+      {% for slide in carousel_slides or slides %}
+      <div class="carousel-item {% if loop.first %}active{% endif %}" style="background-image: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.92) 100%), url('{{ slide.image or slide.urlToImage or '/static/assets/images/hero-active.jpg' }}');">
         <div class="carousel-caption text-start p-3 p-sm-4 p-md-5 pb-4">
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Breaking Spotlight</span>

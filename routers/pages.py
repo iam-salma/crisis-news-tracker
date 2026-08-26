@@ -28,19 +28,27 @@ async def home(request: Request, db: Session = Depends(get_db)):
     if all_articles:
         await generate_audio_summary(all_articles)
 
+    # Select high-quality, diverse photo-bearing articles for the carousel
+    photo_articles = [a for a in all_articles if a.urlToImage and a.urlToImage.startswith("http")]
+    carousel_source = photo_articles[:4] if len(photo_articles) >= 3 else all_articles[:4]
+
     slides = []
-    for article in all_articles[:3]:
+    seen_countries = set()
+    for article in carousel_source:
         country_name, coords = detect_country_coords(f"{article.title} {article.description or ''}")
         donate_url = donation_links.get(country_name, article.link or "https://www.redcross.org/donate/donation.html/")
+        img_url = article.urlToImage or "/static/assets/images/hero-active.jpg"
         slides.append({
             "id": article.id,
             "title": article.title,
             "description": article.description or "Active humanitarian monitoring underway.",
-            "urlToImage": article.urlToImage or "/static/assets/images/hero-active.jpg",
+            "image": img_url,
+            "urlToImage": img_url,
             "country": country_name,
             "publishedAt": article.publishedAt,
             "donate_link": donate_url
         })
+        seen_countries.add(country_name)
 
     voice_ready = settings.SUMMARY_MP3_PATH.exists()
     audio_version = get_audio_cache_version()
@@ -49,6 +57,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "all_articles": all_articles,
         "slides": slides,
+        "carousel_slides": slides,
         "voice_ready": voice_ready,
         "audio_version": audio_version
     })
