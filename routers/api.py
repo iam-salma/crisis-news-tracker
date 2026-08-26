@@ -140,12 +140,15 @@ async def get_crisis_countries(db: Session = Depends(get_db)):
         return {"total_hotspots": 0, "total_countries": 0, "crisis_countries": [], "corridors": HUMANITARIAN_CORRIDORS}
 
 
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
+
 @router.get("/getmail", summary="Newsletter Subscription")
 async def get_mail(request: Request, db: Session = Depends(get_db)):
     """Registers user email for crisis briefings."""
     email = request.query_params.get("email", "").strip()
-    if not email:
-        return RedirectResponse(url="/", status_code=303)
+    if not email or not EMAIL_REGEX.match(email) or len(email) > 120:
+        return RedirectResponse(url="/?invalid_email=true", status_code=303)
 
     try:
         existing = db.query(AddEmail).filter_by(email=email).first()
