@@ -53,13 +53,19 @@
                 <img src="{{ hero_image }}" class="img-fluid w-100" style="height: 320px; object-fit: cover;" alt="Crisis in {{ country }}" onerror="this.src='/static/assets/images/hero-active.jpg'">
             </div>
             <div class="col-lg-7 col-md-6 order-md-1 p-4 p-lg-5">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                     <span class="badge bg-danger text-uppercase fw-bold"><i class="bi bi-broadcast me-1"></i> Active Crisis Zone</span>
                     <span class="badge bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ country }}</span>
                     <span class="badge bg-primary-subtle text-primary">{{ all_articles | length }} Reports Found</span>
                 </div>
 
-                <h1 class="display-6 fw-bold mb-3">Humanitarian Situation in {{ country }}</h1>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ hero_image }}" class="rounded-4 shadow-sm flex-shrink-0" style="width: 76px; height: 76px; object-fit: cover; border: 2px solid rgba(220,53,69,0.35);" alt="{{ country }}" onerror="this.src='/static/assets/images/hero-active.jpg'">
+                    <div>
+                        <h1 class="display-6 fw-bold mb-0">Humanitarian Situation in {{ country }}</h1>
+                    </div>
+                </div>
+
                 <p class="text-body-secondary lead fs-6 mb-4">
                     Tracking real-time frontline developments, humanitarian displacement, and verified emergency relief channels for {{ country }}.
                 </p>
