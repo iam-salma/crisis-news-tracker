@@ -11,15 +11,15 @@ IMAGE_CACHE: Dict[str, str] = {}
 def fetch_google_search_image(query: str) -> Optional[str]:
     """
     Searches Google Custom Search JSON API for high-resolution photography of a country, city, or region.
-    Requires GOOGLE_API_KEY and GOOGLE_CSE_ID in environment / .env.
+    Uses CUSTOM_SEARCH_API_KEY, SEARCH_ENGINE_ID, and CUSTOM_SEARCH_URL from .env.
     """
-    if not settings.GOOGLE_API_KEY or not settings.GOOGLE_CSE_ID:
+    if not settings.CUSTOM_SEARCH_API_KEY or not settings.SEARCH_ENGINE_ID:
         return None
     try:
-        url = "https://customsearch.googleapis.com/customsearch/v1"
+        url = settings.CUSTOM_SEARCH_URL or "https://www.googleapis.com/customsearch/v1"
         params = {
-            "key": settings.GOOGLE_API_KEY,
-            "cx": settings.GOOGLE_CSE_ID,
+            "key": settings.CUSTOM_SEARCH_API_KEY,
+            "cx": settings.SEARCH_ENGINE_ID,
             "q": f"{query} landscape scenery photography",
             "searchType": "image",
             "num": 1,
@@ -34,10 +34,12 @@ def fetch_google_search_image(query: str) -> Optional[str]:
             if items and "link" in items[0]:
                 img_url = items[0]["link"]
                 if img_url.startswith("http") and not img_url.endswith(".svg"):
-                    logger.info("Google Search API image retrieved for %s", query)
+                    logger.info("Custom Search API image retrieved for %s", query)
                     return img_url
+        else:
+            logger.warning("Custom Search API error (%s): %s", resp.status_code, resp.text[:120])
     except Exception as e:
-        logger.warning("Google Search API image fetch notice: %s", e)
+        logger.warning("Custom Search API image fetch notice: %s", e)
     return None
 
 

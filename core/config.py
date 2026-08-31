@@ -29,8 +29,9 @@ class Settings:
     SUMMARY_MP3_PATH: Path = STATIC_DIR / "assets" / "audio_summary" / "summary.mp3"
     SUMMARY_TIMESTAMP_PATH: Path = STATIC_DIR / "assets" / "audio_summary" / "summary_timestamp.txt"
     
-    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", os.getenv("GOOGLE_SEARCH_API_KEY", ""))
-    GOOGLE_CSE_ID: str = os.getenv("GOOGLE_CSE_ID", os.getenv("GOOGLE_SEARCH_ENGINE_ID", ""))
+    CUSTOM_SEARCH_API_KEY: str = os.getenv("CUSTOM_SEARCH_API_KEY", "")
+    SEARCH_ENGINE_ID: str = os.getenv("SEARCH_ENGINE_ID", "")
+    CUSTOM_SEARCH_URL: str = os.getenv("CUSTOM_SEARCH_URL", "https://www.googleapis.com/customsearch/v1")
 
     EMAIL_USER: str = os.getenv("EMAIL_USER", "")
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "")
