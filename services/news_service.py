@@ -33,9 +33,10 @@ CRISIS_TELEMETRY_PHOTOS = {
         "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&auto=format&fit=crop&q=75"
     ],
     "general": [
-        "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900&auto=format&fit=crop&q=75",
-        "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&auto=format&fit=crop&q=75",
-        "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9?w=900&auto=format&fit=crop&q=75"
+        "/static/assets/images/hero-active.jpg",
+        "/static/assets/images/hero1.jpg",
+        "/static/assets/images/hero2.jpg",
+        "/static/assets/images/hero3.jpg"
     ]
 }
 
