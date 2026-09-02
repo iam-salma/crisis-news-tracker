@@ -14,6 +14,7 @@ from services.relief_service import donation_links, GLOBAL_RELIEF_PARTNERS, get_
 from services.analysis_service import analyze_crisis_article
 from services.audio_service import get_audio_cache_version, generate_audio_summary
 from services.news_service import insert_news_in_db, get_contextual_photo
+from services.custom_search_service import fetch_custom_search_image
 
 router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
@@ -140,14 +141,17 @@ async def search_news(
     c_label = display_name if display_name != "Global Crisis Region" else search_term.title()
     verified_link = donation_links.get(c_label, donation_links.get(search_term.title(), "https://www.redcross.org/donate/donation.html/"))
 
-    # Select the best genuine high-resolution photo from articles, or fallback to contextual photo
-    hero_img = None
-    if articles:
+    # 1. Primary: Google Custom Search API from .env credentials
+    hero_img = fetch_custom_search_image(c_label)
+
+    # 2. Secondary: Top genuine photo from NewsAPI articles
+    if not hero_img and articles:
         for a in articles:
             if a.urlToImage and a.urlToImage.startswith("http") and not a.urlToImage.endswith("hero-active.jpg") and len(a.urlToImage) > 15:
                 hero_img = a.urlToImage
                 break
 
+    # 3. Fallback: Contextual humanitarian photo
     if not hero_img:
         hero_img = get_contextual_photo(f"{search_term} {c_label} disaster crisis humanitarian relief")
 
