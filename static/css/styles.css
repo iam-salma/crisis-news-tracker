@@ -74,8 +74,8 @@
     background-position: center 25% !important;
     background-repeat: no-repeat !important;
     height: 46vh !important;
-    min-height: 380px !important;
-    max-height: 440px !important;
+    min-height: 388px !important;
+    max-height: 448px !important;
     position: relative !important;
 }
 
@@ -698,8 +698,8 @@ img {
 @media (max-width: 991.98px) {
     .carousel-item {
         height: auto !important;
-        min-height: 350px !important;
-        max-height: 400px !important;
+        min-height: 358px !important;
+        max-height: 408px !important;
     }
 
     .carousel-caption {
@@ -728,7 +728,7 @@ img {
 
 @media (max-width: 575.98px) {
     .carousel-item {
-        min-height: 310px !important;
+        min-height: 318px !important;
     }
 
     .carousel-caption {
