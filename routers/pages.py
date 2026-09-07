@@ -134,7 +134,7 @@ async def search_news(
 
     articles = db.query(NewsArticle).filter(or_(*search_filters)).order_by(NewsArticle.id.desc()).all()
 
-    if not articles or len(articles) < 2:
+    if not articles or len(articles) < 8:
         await insert_news_in_db(country=search_term)
         articles = db.query(NewsArticle).filter(or_(*search_filters)).order_by(NewsArticle.id.desc()).all()
 

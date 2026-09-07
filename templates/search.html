@@ -50,7 +50,7 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-body-tertiary">
         <div class="row g-0 align-items-center">
             <div class="col-lg-5 col-md-6 order-md-2">
-                <img src="{{ hero_image }}" class="img-fluid w-100" style="height: 320px; object-fit: cover;" alt="Crisis in {{ country }}" onerror="this.src='/static/assets/images/hero-active.jpg'">
+                <img src="{{ hero_image }}" class="img-fluid w-100" style="height: 320px; object-fit: cover;" alt="Crisis in {{ country }}" referrerpolicy="no-referrer" onerror="this.src='/static/assets/images/hero-active.jpg'">
             </div>
             <div class="col-lg-7 col-md-6 order-md-1 p-4 p-lg-5">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -91,7 +91,7 @@
         <div class="col">
             <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden d-flex flex-column hover-lift">
                 <div class="position-relative">
-                    <img src="{{ article.urlToImage }}" class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;" onerror="this.src='/static/assets/images/hero-active.jpg'">
+                    <img src="{{ article.urlToImage }}" class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;" referrerpolicy="no-referrer" onerror="this.src='/static/assets/images/hero-active.jpg'">
                 </div>
                 <div class="card-body d-flex flex-column flex-grow-1 p-3">
                     <h5 class="card-title fw-bold fs-6 mb-2 line-clamp-2" style="min-height: 2.5rem;">

@@ -23,6 +23,10 @@ Thumbs.db
 # Logs and local databases
 *.log
 *.sqlite3
+*.db
+*.db-wal
+*.db-shm
+instance/
 
 # Environment variables and secrets
 .env
