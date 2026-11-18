@@ -49,7 +49,7 @@ def send_smtp_email(to_email: str, subject: str, html_body: str, text_body: Opti
 
 def send_welcome_newsletter_email(recipient_email: str) -> None:
     """Sends a subscription welcome confirmation with verified humanitarian resources."""
-    subject = "CrisisAid — Subscription Confirmed: Real-Time Crisis Briefings"
+    subject = "CrisisAid - Subscription Confirmed: Real-Time Crisis Briefings"
     html_body = f"""
     <!DOCTYPE html>
     <html>

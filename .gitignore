@@ -61,5 +61,5 @@ link.py
 dummy.py
 hidden_files/
 
-summary.mp3
-summary_timestamp.txt
+static/assets/audio_summary/summary.mp3
+static/assets/audio_summary/summary_timestamp.txt
