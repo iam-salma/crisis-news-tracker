@@ -30,6 +30,12 @@ from services.chat_service import (
     CHAT_STOP_WORDS,
     generate_ai_chat_response
 )
+from services.email_service import (
+    send_smtp_email,
+    send_welcome_newsletter_email,
+    send_contact_email,
+    broadcast_crisis_newsletter
+)
 
 __all__ = [
     "country_coordinates_data",
@@ -51,5 +57,9 @@ __all__ = [
     "fetch_multi_source_news",
     "insert_news_in_db",
     "CHAT_STOP_WORDS",
-    "generate_ai_chat_response"
+    "generate_ai_chat_response",
+    "send_smtp_email",
+    "send_welcome_newsletter_email",
+    "send_contact_email",
+    "broadcast_crisis_newsletter"
 ]

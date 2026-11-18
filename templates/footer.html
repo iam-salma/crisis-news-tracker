@@ -23,6 +23,15 @@
         <form action="/getmail" method="get">
           <h5>Subscribe To Our Newsletter</h5>
           <p>Get the latest updates on global crises and relief efforts directly in your inbox.</p>
+          {% if request.query_params.get('subscribed') == 'true' %}
+          <div class="alert alert-success py-2 px-3 mb-2 small shadow-sm border-0" role="alert">
+            <strong>✓ Subscribed successfully!</strong> You'll receive real-time crisis briefings.
+          </div>
+          {% elif request.query_params.get('invalid_email') == 'true' %}
+          <div class="alert alert-danger py-2 px-3 mb-2 small shadow-sm border-0" role="alert">
+            <strong>⚠ Invalid email:</strong> Please enter a valid email address.
+          </div>
+          {% endif %}
           <div class="d-flex flex-column flex-sm-row w-100 gap-2">
             <label for="newsletter1" class="visually-hidden">Email address</label>
             <input id="newsletter1" type="email" class="form-control" name="email" placeholder="Email address" required>

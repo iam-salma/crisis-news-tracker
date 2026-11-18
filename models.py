@@ -1,10 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-DATABASE_URL = "sqlite:///./instance/news.db"
-
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String
+from core.database import Base, engine, SessionLocal
 
 
 class NewsArticle(Base):
@@ -27,8 +22,4 @@ class AddEmail(Base):
     email = Column(String, index=True)
 
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# create tables
-Base.metadata.create_all(bind=engine)
+__all__ = ["Base", "NewsArticle", "AddEmail", "engine", "SessionLocal"]

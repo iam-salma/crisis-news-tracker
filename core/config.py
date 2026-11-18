@@ -16,7 +16,11 @@ class Settings:
     TEMPLATES_DIR: Path = BASE_DIR / "templates"
     INSTANCE_DIR: Path = BASE_DIR / "instance"
     
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/news.db")
+    _raw_db_url: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance'}/news.db")
+    # Render PostgreSQL URLs start with postgres://, SQLAlchemy 2.0 requires postgresql://
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL: str = _raw_db_url
     
     NEWS_API_KEY: str = os.getenv("NEWS_API_KEY", "")
     NEWS_API_URL: str = os.getenv("NEWS_API_URL", "https://newsapi.org/v2/everything")
@@ -39,3 +43,7 @@ class Settings:
     EMAIL_PORT: int = int(os.getenv("EMAIL_PORT", "465"))
 
 settings = Settings()
+
+# Ensure local directories exist upon settings initialization
+settings.INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+settings.DATA_DIR.mkdir(parents=True, exist_ok=True)

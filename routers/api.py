@@ -1,10 +1,6 @@
 import re
 import json
 import asyncio
-import smtplib
-import ssl
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, HTTPException
@@ -21,6 +17,11 @@ from services.geo_service import detect_geo_entity, CONTINENTS_REGIONS
 from services.relief_service import donation_links, HUMANITARIAN_CORRIDORS
 from services.analysis_service import analyze_crisis_article
 from services.chat_service import generate_ai_chat_response
+from services.email_service import (
+    send_welcome_newsletter_email,
+    send_contact_email,
+    broadcast_crisis_newsletter
+)
 
 router = APIRouter(tags=["API"])
 
@@ -38,96 +39,91 @@ async def generate_chat(data: ChatQuery, db: Session = Depends(get_db)):
         try:
             bot_reply, provider_name = await LLMServiceFactory.generate_with_fallback(
                 prompt=user_message,
-                system_prompt="You are CrisisAid AI, a helpful humanitarian crisis assistant. Keep answers concise and direct.",
-                preferred="local_hf"
+                preferred_provider="local_hf"
             )
             return {"response": bot_reply, "provider": provider_name}
         except Exception as e:
-            logger.warning("[Local HF] REST error: %s. Using RAG Engine.", e)
+            logger.warning("Local HF Provider invocation fallback notice: %s", e)
 
-    bot_reply = await generate_ai_chat_response(user_message, db=db)
-    return {"response": bot_reply, "provider": "CrisisAid Local Intelligence Engine"}
+    # Deterministic RAG intelligence default
+    reply = generate_ai_chat_response(user_message, db)
+    return {"response": reply, "provider": "Deterministic Humanitarian RAG Engine"}
 
 
-@router.post("/stream_chat/", summary="Server-Sent Events (SSE) AI Chat Streaming")
+@router.post("/stream_chat/", summary="Streaming SSE AI Chat")
 async def stream_chat(data: ChatQuery, db: Session = Depends(get_db)):
-    """Streams real-time token chunks over Server-Sent Events (SSE)."""
+    """Server-Sent Events (SSE) token streamer for real-time AI conversation."""
     user_message = data.message.strip()
     if not user_message:
         async def empty_stream():
-            yield f"data: {json.dumps({'type': 'token', 'chunk': 'Please type a question so I can assist you.'})}\n\n"
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            yield "data: Please type a message so I can assist you.\n\n"
         return StreamingResponse(empty_stream(), media_type="text/event-stream")
 
     selected_provider = data.provider or "local_rule"
 
-    async def sse_event_generator():
-        if selected_provider == "local_hf":
-            try:
-                yield f"data: {json.dumps({'type': 'meta', 'provider': 'Local In-Memory LLM (Qwen2.5)'})}\n\n"
-                async for item in LLMServiceFactory.stream_with_fallback(
-                    prompt=user_message,
-                    system_prompt="You are CrisisAid AI, a helpful humanitarian crisis assistant.",
-                    preferred="local_hf"
-                ):
-                    if item.get("type") == "token":
-                        yield f"data: {json.dumps(item)}\n\n"
-                yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                return
-            except Exception as e:
-                logger.warning("[Local HF Stream] notice: %s. Cascading to RAG Engine.", e)
+    if selected_provider == "local_hf":
+        try:
+            hf_provider = LLMServiceFactory.get_provider("local_hf")
+            token_generator = await hf_provider.stream_generate(user_message)
 
-        # Primary Instant RAG Intelligence Engine
-        bot_reply = await generate_ai_chat_response(user_message, db=db)
-        yield f"data: {json.dumps({'type': 'meta', 'provider': 'CrisisAid Local Intelligence Engine'})}\n\n"
+            async def event_generator():
+                for token in token_generator:
+                    yield f"data: {token}\n\n"
+                    await asyncio.sleep(0.01)
 
-        words = re.split(r'(\s+)', bot_reply)
-        for w in words:
-            if w:
-                yield f"data: {json.dumps({'type': 'token', 'chunk': w})}\n\n"
-                await asyncio.sleep(0.012)
-        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            return StreamingResponse(
+                event_generator(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no"
+                }
+            )
+        except Exception as e:
+            logger.warning("Streaming fallback to deterministic RAG: %s", e)
 
-    return StreamingResponse(sse_event_generator(), media_type="text/event-stream")
+    # Deterministic token chunk streamer
+    async def simulated_stream():
+        full_reply = generate_ai_chat_response(user_message, db)
+        words = full_reply.split(" ")
+        for i, word in enumerate(words):
+            chunk = word + (" " if i < len(words) - 1 else "")
+            yield f"data: {chunk}\n\n"
+            await asyncio.sleep(0.02)
+
+    return StreamingResponse(
+        simulated_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 
-@router.get("/get_crisis_countries", summary="Active Crisis Geo Hotspots")
+@router.get("/get_crisis_countries", summary="Active Telemetry & Geospatial Hotspots")
 async def get_crisis_countries(db: Session = Depends(get_db)):
-    """Retrieves all active crisis hotspots with geolocation and urgency metadata."""
+    """Returns detected crisis geographic hotspots with direct donation links."""
     try:
         articles = db.query(NewsArticle).all()
         crisis_countries = []
         unique_countries = set()
 
-        for art in articles:
-            geo_type, geo_name, coords, _ = detect_geo_entity(f"{art.title} {art.description or ''}")
-            analysis = analyze_crisis_article(title=art.title, description=art.description, country_name=geo_name)
+        for article in articles:
+            combined_text = f"{article.title} {article.description}"
+            detected_country = detect_geo_entity(combined_text)
 
-            continent = "Global"
-            for reg_key, reg_info in CONTINENTS_REGIONS.items():
-                if geo_name.lower() in reg_info["countries"] or geo_name.lower() == reg_key:
-                    continent = reg_info["name"]
-                    break
-
-            donate_url = donation_links.get(geo_name, art.link or "https://www.redcross.org/donate/donation.html/")
-            unique_countries.add(geo_name)
-
-            crisis_countries.append({
-                "id": art.id,
-                "country": geo_name,
-                "continent": continent,
-                "title": art.title,
-                "description": art.description or "Active humanitarian response underway.",
-                "image": art.urlToImage or "/static/assets/images/hero-active.jpg",
-                "publishedAt": art.publishedAt,
-                "lat": coords[0],
-                "lng": coords[1],
-                "urgency": analysis["urgency"],
-                "crisis_type": analysis["crisis_type"],
-                "immediate_needs": analysis["immediate_needs"],
-                "donate_url": donate_url,
-                "briefing_url": f"/news_article/{art.id}/{geo_name}"
-            })
+            if detected_country and detected_country not in unique_countries:
+                unique_countries.add(detected_country)
+                d_link = donation_links.get(detected_country.lower(), "https://www.icrc.org/en/donate")
+                crisis_countries.append({
+                    "country": detected_country,
+                    "title": article.title,
+                    "donation_link": d_link,
+                    "source": getattr(article, "url", "#")
+                })
 
         return {
             "total_hotspots": len(crisis_countries),
@@ -144,11 +140,11 @@ EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 
 @router.get("/getmail", summary="Newsletter Subscription")
-async def get_mail(request: Request, db: Session = Depends(get_db)):
-    """Registers user email for crisis briefings."""
+async def get_mail(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Registers user email for crisis briefings and dispatches welcome confirmation."""
     email = request.query_params.get("email", "").strip()
     if not email or not EMAIL_REGEX.match(email) or len(email) > 120:
-        return RedirectResponse(url="/?invalid_email=true", status_code=303)
+        return RedirectResponse(url="/?invalid_email=true#target-section", status_code=303)
 
     try:
         existing = db.query(AddEmail).filter_by(email=email).first()
@@ -156,33 +152,34 @@ async def get_mail(request: Request, db: Session = Depends(get_db)):
             new_sub = AddEmail(email=email)
             db.add(new_sub)
             db.commit()
+            # Send welcome confirmation in the background if SMTP credentials are configured
+            background_tasks.add_task(send_welcome_newsletter_email, email)
+            logger.info("New newsletter subscriber registered: %s", email)
     except Exception as e:
         db.rollback()
         logger.warning("Newsletter registration notice: %s", e)
 
-    return RedirectResponse(url="/?subscribed=true", status_code=303)
+    return RedirectResponse(url="/?subscribed=true#target-section", status_code=303)
 
 
-def send_contact_email(name: str, email: str, message: str) -> None:
-    """Dispatches contact form submission via SMTP."""
-    if not settings.EMAIL_USER or not settings.EMAIL_PASSWORD:
-        return
-
+@router.post("/api/newsletter/broadcast", summary="Dispatch Newsletter Broadcast")
+async def dispatch_newsletter(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Admin endpoint to dispatch latest situation report digest to all subscribers."""
     try:
-        msg = MIMEMultipart()
-        msg['From'] = settings.EMAIL_USER
-        msg['To'] = settings.EMAIL_USER
-        msg['Subject'] = f"CrisisAid Contact Form Submission from {name}"
-        body = f"Sender Name: {name}\nSender Email: {email}\n\nMessage:\n{message}"
-        msg.attach(MIMEText(body, 'plain'))
+        subs = [row.email for row in db.query(AddEmail).all()]
+        if not subs:
+            return JSONResponse(status_code=200, content={"message": "No subscribers registered yet."})
 
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(settings.EMAIL_SERVER, settings.EMAIL_PORT, context=context) as server:
-            server.login(settings.EMAIL_USER, settings.EMAIL_PASSWORD)
-            server.sendmail(settings.EMAIL_USER, settings.EMAIL_USER, msg.as_string())
-        logger.info("Successfully sent contact email from %s", email)
+        articles = [
+            {"title": a.title, "description": a.description, "url": a.url}
+            for a in db.query(NewsArticle).order_by(NewsArticle.id.desc()).limit(5).all()
+        ]
+
+        background_tasks.add_task(broadcast_crisis_newsletter, subs, articles)
+        return {"status": "queued", "subscribers_count": len(subs), "articles_count": len(articles)}
     except Exception as e:
-        logger.error("Failed to send contact email: %s", e)
+        logger.error("Newsletter broadcast dispatch error: %s", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @router.post("/contact", summary="Submit Contact Form")

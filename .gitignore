@@ -26,7 +26,8 @@ Thumbs.db
 *.db
 *.db-wal
 *.db-shm
-instance/
+instance/*
+!instance/.gitkeep
 
 # Environment variables and secrets
 .env

@@ -9,11 +9,13 @@ from fastapi.middleware.gzip import GZipMiddleware
 
 from core.config import settings
 from core.database import Base, engine
+import models  # Ensure all ORM models are registered to Base.metadata
 from core.logging_config import logger
 from routers import pages_router, api_router
 from services.news_service import insert_news_in_db
 
-# Create SQLite tables on module import if not present
+# Ensure instance directory exists before creating tables
+settings.INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
 Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
 

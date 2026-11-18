@@ -10,3 +10,4 @@ pydantic[email]
 python-multipart
 pandas
 gTTS
+psycopg2-binary>=2.9.9
