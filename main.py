@@ -107,3 +107,8 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+
+
+# You can trigger the email summary digest immediately to see what it looks like in your inbox:
+#   • From your PowerShell terminal:
+#     Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/newsletter/broadcast"
