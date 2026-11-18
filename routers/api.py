@@ -1,6 +1,7 @@
 import re
 import json
 import asyncio
+from datetime import datetime
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, HTTPException
@@ -16,7 +17,7 @@ from llm_engine import LLMServiceFactory
 from services.geo_service import detect_geo_entity, CONTINENTS_REGIONS
 from services.relief_service import donation_links, HUMANITARIAN_CORRIDORS
 from services.analysis_service import analyze_crisis_article
-from services.chat_service import generate_ai_chat_response
+from services.chat_service import generate_ai_chat_response, get_rag_context_for_query
 from services.email_service import (
     send_welcome_newsletter_email,
     send_contact_email,
@@ -28,7 +29,7 @@ router = APIRouter(tags=["API"])
 
 @router.post("/generate/", summary="REST AI Chat Intelligence")
 async def generate_chat(data: ChatQuery, db: Session = Depends(get_db)):
-    """Non-streaming AI chat query execution with local heuristic & LLM fallback."""
+    """Non-streaming AI chat query execution with live RAG retrieval & LLM fallback."""
     user_message = data.message.strip()
     if not user_message:
         return {"response": "Please type a message so I can assist you.", "provider": "CrisisAid Local Engine"}
@@ -37,9 +38,19 @@ async def generate_chat(data: ChatQuery, db: Session = Depends(get_db)):
 
     if selected_provider == "local_hf":
         try:
+            rag_context = get_rag_context_for_query(user_message, db)
+            system_prompt = (
+                f"You are CrisisAid AI, an expert real-time humanitarian intelligence system. "
+                f"Current system date is {datetime.now().strftime('%d %B %Y')}. "
+                f"Use the following real-time crisis intelligence reports from our live database to answer the user accurately. "
+                f"Focus on current frontline developments, casualties, civilian displacement, and relief efforts. "
+                f"Do NOT say your knowledge cuts off in 2023 because you are provided with live real-time reports below.\n\n"
+                f"--- LIVE HUMANITARIAN DATABASE REPORTS ---\n{rag_context}\n--- END REPORTS ---"
+            )
             bot_reply, provider_name = await LLMServiceFactory.generate_with_fallback(
                 prompt=user_message,
-                preferred_provider="local_hf"
+                system_prompt=system_prompt,
+                preferred="local_hf"
             )
             return {"response": bot_reply, "provider": provider_name}
         except Exception as e:
@@ -52,7 +63,7 @@ async def generate_chat(data: ChatQuery, db: Session = Depends(get_db)):
 
 @router.post("/stream_chat/", summary="Streaming SSE AI Chat")
 async def stream_chat(data: ChatQuery, db: Session = Depends(get_db)):
-    """Server-Sent Events (SSE) token streamer for real-time AI conversation."""
+    """Server-Sent Events (SSE) token streamer for real-time AI conversation with RAG context."""
     user_message = data.message.strip()
     if not user_message:
         async def empty_stream():
@@ -63,13 +74,20 @@ async def stream_chat(data: ChatQuery, db: Session = Depends(get_db)):
 
     if selected_provider == "local_hf":
         try:
+            rag_context = get_rag_context_for_query(user_message, db)
+            system_prompt = (
+                f"You are CrisisAid AI, an expert real-time humanitarian intelligence system. "
+                f"Current system date is {datetime.now().strftime('%d %B %Y')}. "
+                f"Use the following real-time crisis intelligence reports from our live database to answer the user accurately. "
+                f"Focus on current frontline developments, casualties, civilian displacement, and relief efforts. "
+                f"Do NOT say your knowledge cuts off in 2023 because you are provided with live real-time reports below.\n\n"
+                f"--- LIVE HUMANITARIAN DATABASE REPORTS ---\n{rag_context}\n--- END REPORTS ---"
+            )
             hf_provider = LLMServiceFactory.get_provider("local_hf")
-            token_generator = await hf_provider.stream_generate(user_message)
 
             async def event_generator():
-                for token in token_generator:
+                async for token in hf_provider.stream_response(user_message, system_prompt):
                     yield f"data: {token}\n\n"
-                    await asyncio.sleep(0.01)
 
             return StreamingResponse(
                 event_generator(),

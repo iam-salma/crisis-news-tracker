@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from models import NewsArticle
 from services.geo_service import detect_geo_entity, detect_country_coords
@@ -20,7 +20,66 @@ CHAT_STOP_WORDS = {
 }
 
 
-async def generate_ai_chat_response(user_message: str, db: Optional[Session] = None) -> str:
+def get_rag_context_for_query(query: str, db: Optional[Session] = None, max_articles: int = 5) -> str:
+    """
+    Retrieves and ranks live database articles matching query keywords/geography,
+    formatting them as real-time RAG context for neural LLMs (e.g. Qwen).
+    """
+    if not db:
+        return ""
+    try:
+        geo_type, geo_name, _, geo_target_countries = detect_geo_entity(query)
+        all_articles = db.query(NewsArticle).all()
+        words = [re.sub(r'[^a-z0-9]', '', w) for w in query.lower().split()]
+        keywords = [w for w in words if len(w) >= 3 and w not in CHAT_STOP_WORDS]
+
+        scored = []
+        for art in all_articles:
+            title_l = (art.title or "").lower()
+            desc_l = (art.description or "").lower()
+            art_text = f"{title_l} {desc_l}"
+            art_geo_type, art_c_name, _, _ = detect_geo_entity(art_text)
+            score = 0
+
+            if geo_type == "country" and geo_name:
+                if art_c_name.lower() == geo_name.lower():
+                    score += 30
+                elif geo_name.lower() in title_l:
+                    score += 20
+                elif geo_name.lower() in desc_l:
+                    score += 10
+            elif geo_type == "region":
+                if art_c_name.lower() in geo_target_countries:
+                    score += 25
+                elif any(c in art_text for c in geo_target_countries):
+                    score += 12
+
+            for kw in keywords:
+                if kw in title_l:
+                    score += 5
+                elif kw in desc_l:
+                    score += 2
+
+            if score > 0:
+                scored.append((score, art))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_articles = [art for _, art in scored[:max_articles]]
+        if not top_articles and all_articles:
+            top_articles = all_articles[:max_articles]
+
+        context_lines = []
+        for i, art in enumerate(top_articles, 1):
+            date_str = art.publishedAt or "Recent"
+            context_lines.append(f"Report {i}: [{date_str}] {art.title}\nSummary: {art.description}\nSource: {art.url or 'Wire'}")
+
+        return "\n\n".join(context_lines)
+    except Exception as e:
+        logger.warning("Error building RAG context for query '%s': %s", query, e)
+        return ""
+
+
+def generate_ai_chat_response(user_message: str, db: Optional[Session] = None) -> str:
     """
     Primary Instant RAG Intelligence Engine.
     Executes live database retrieval, ranking, and constructs structured Markdown briefings.

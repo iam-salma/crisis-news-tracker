@@ -92,9 +92,9 @@ class HuggingFaceLocalLLMProvider(BaseLLMProvider):
             with __import__("torch").no_grad():
                 outputs = model.generate(
                     **inputs,
-                    max_new_tokens=350,
+                    max_new_tokens=400,
                     do_sample=True,
-                    temperature=0.4,
+                    temperature=0.3,
                     top_p=0.9,
                     repetition_penalty=1.1,
                     pad_token_id=tokenizer.eos_token_id
@@ -126,9 +126,9 @@ class HuggingFaceLocalLLMProvider(BaseLLMProvider):
         generation_kwargs = dict(
             **inputs,
             streamer=streamer,
-            max_new_tokens=350,
+            max_new_tokens=400,
             do_sample=True,
-            temperature=0.4,
+            temperature=0.3,
             top_p=0.9,
             repetition_penalty=1.1,
             pad_token_id=tokenizer.eos_token_id
@@ -143,6 +143,9 @@ class HuggingFaceLocalLLMProvider(BaseLLMProvider):
                 await asyncio.sleep(0.01)
 
         thread.join()
+
+    # Alias for compatibility
+    stream_generate = stream_response
 
 
 class LocalHeuristicProvider(BaseLLMProvider):
@@ -192,6 +195,8 @@ class LocalHeuristicProvider(BaseLLMProvider):
                 yield w
                 await asyncio.sleep(0.015)
 
+    stream_generate = stream_response
+
 
 class LLMServiceFactory:
     """Factory and orchestrator prioritizing your in-memory local LLM with 0 external APIs."""
@@ -208,11 +213,18 @@ class LLMServiceFactory:
         return cls._providers["local_hf"]
 
     @classmethod
-    async def generate_with_fallback(cls, prompt: str, system_prompt: str = "", preferred: Optional[str] = None) -> tuple[str, str]:
+    async def generate_with_fallback(
+        cls,
+        prompt: str,
+        system_prompt: str = "",
+        preferred: Optional[str] = None,
+        preferred_provider: Optional[str] = None
+    ) -> tuple[str, str]:
         """Runs your local in-memory LLM with zero external cloud APIs."""
+        target_pref = preferred or preferred_provider
         order = []
-        if preferred and preferred.lower() in cls._providers:
-            order.append(cls._providers[preferred.lower()])
+        if target_pref and target_pref.lower() in cls._providers:
+            order.append(cls._providers[target_pref.lower()])
         
         # Priority: Local In-Memory HuggingFace Model -> Local Rule Engine
         for p in [cls._providers["local_hf"], cls._providers["local_rule"]]:
@@ -233,14 +245,20 @@ class LLMServiceFactory:
         return result, cls._providers["local_rule"].name
 
     @classmethod
-    async def stream_with_fallback(cls, prompt: str, system_prompt: str = "", preferred: Optional[str] = None) -> AsyncIterator[Dict[str, Any]]:
+    async def stream_with_fallback(
+        cls,
+        prompt: str,
+        system_prompt: str = "",
+        preferred: Optional[str] = None,
+        preferred_provider: Optional[str] = None
+    ) -> AsyncIterator[Dict[str, Any]]:
         """Streams real-time tokens from your local LLM directly to the browser."""
-        provider = cls.get_provider(preferred)
+        target_pref = preferred or preferred_provider
+        provider = cls.get_provider(target_pref)
         try:
             if await provider.is_available():
                 yield {"type": "meta", "provider": provider.name}
                 async for chunk in provider.stream_response(prompt, system_prompt):
-                    # Format bold markers and linebreaks cleanly
                     formatted_chunk = chunk.replace("\n", "<br>")
                     yield {"type": "token", "chunk": formatted_chunk}
                 yield {"type": "done"}
@@ -248,7 +266,6 @@ class LLMServiceFactory:
         except Exception as e:
             print(f"[Local LLM Engine] Streaming fallback notice: {e}")
 
-        # Fallback to local rule engine
         fb_provider = cls._providers["local_rule"]
         yield {"type": "meta", "provider": fb_provider.name}
         async for chunk in fb_provider.stream_response(prompt, system_prompt):
